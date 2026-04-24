@@ -1,0 +1,78 @@
+.headstock {
+  position: relative;
+  display: grid;
+  grid-template-columns: 56px 1fr 56px;
+  align-items: center;
+  justify-items: center;
+  gap: 16px;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 8px 0 24px;
+}
+
+.headstock__column {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  align-items: center;
+}
+
+.headstock__svg {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+}
+
+.string-btn {
+  width: 52px;
+  height: 52px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 18px;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.string-btn:disabled {
+  cursor: default;
+}
+
+.string-btn:hover:not(:disabled) {
+  border-color: var(--musik);
+}
+
+.string-btn:focus-visible {
+  outline: 2px solid var(--musik);
+  outline-offset: 2px;
+}
+
+.string-btn--active {
+  border-color: var(--musik);
+  color: var(--musik);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--musik) 18%, transparent);
+}
+
+.string-btn--pulse {
+  animation: stringPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes stringPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--musik) 20%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--musik) 8%, transparent);
+  }
+}

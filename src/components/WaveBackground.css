@@ -1,0 +1,46 @@
+.wave-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.wave-bg__layer {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  opacity: 0.14;
+}
+
+.wave-bg__layer svg {
+  width: 120%;
+  height: auto;
+  display: block;
+}
+
+.wave-bg__layer svg line,
+.wave-bg__layer svg path {
+  stroke: var(--musik);
+  fill: none;
+}
+
+.wave-bg__layer--top {
+  top: -4%;
+  transform: rotate(-2deg);
+}
+
+.wave-bg__layer--mid {
+  top: 38%;
+  opacity: 0.18;
+}
+
+.wave-bg__layer--bottom {
+  bottom: 12%;
+  opacity: 0.12;
+  transform: rotate(1deg);
+}
+
+[data-theme='light'] .wave-bg__layer {
+  opacity: 0.22;
+}

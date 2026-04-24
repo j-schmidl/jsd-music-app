@@ -1,0 +1,187 @@
+.tuner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 16px 12px;
+  min-height: 200px;
+}
+
+.tuner__scale {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 420px;
+}
+
+.tuner__flat,
+.tuner__sharp {
+  font-family: var(--font-title);
+  font-size: 24px;
+  color: var(--muted);
+  width: 32px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.tuner__track {
+  position: relative;
+  flex: 1;
+  height: 100px;
+  margin: 0 12px;
+}
+
+.tuner__ticks {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 8px 8px;
+}
+
+.tuner__tick {
+  width: 1px;
+  height: 14px;
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+.tuner__tick--center {
+  height: 100%;
+  background: color-mix(in srgb, var(--muted) 30%, transparent);
+}
+
+.tuner__needle {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 90ms linear, color 160ms ease;
+  color: var(--fg);
+}
+
+.tuner--detected .tuner__needle {
+  color: #ff6b88;
+}
+
+.tuner--in-tune .tuner__needle {
+  color: var(--tech);
+}
+
+.tuner__needle-line {
+  width: 2px;
+  flex: 1;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.tuner__needle-dot {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: currentColor;
+  font-family: var(--font-title);
+  font-weight: 700;
+  margin-top: -4px;
+  transform: translateY(-50%);
+}
+
+.tuner__needle-dot svg {
+  width: 28px;
+  height: 28px;
+}
+
+.tuner__cents {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.tuner__prompt {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--fg);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  padding: 10px 20px;
+  border-radius: 999px;
+  margin: 0;
+  text-align: center;
+}
+
+.tuner__start {
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bg);
+  background: var(--musik);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 24px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: filter 120ms ease, transform 120ms ease;
+}
+
+.tuner__start:hover {
+  filter: brightness(1.1);
+}
+
+.tuner__start:active {
+  transform: scale(0.98);
+}
+
+.tuner__status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.tuner__hint {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--fg);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.tuner__note {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--fg);
+  padding: 6px 16px;
+  border: 1.5px solid color-mix(in srgb, var(--fg) 30%, transparent);
+  border-radius: 999px;
+  min-width: 64px;
+  text-align: center;
+}
+
+.tuner__note sup {
+  font-size: 16px;
+  margin-left: 2px;
+}
+
+.tuner__status--ok .tuner__note {
+  color: var(--tech);
+  border-color: var(--tech);
+}
+
+.tuner__error {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: #ff6b88;
+  text-align: center;
+  margin: 0;
+}

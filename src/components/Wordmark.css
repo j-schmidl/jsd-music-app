@@ -1,0 +1,12 @@
+.wordmark {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 34px;
+  letter-spacing: -1.2px;
+  color: var(--fg);
+  line-height: 1;
+}
+
+.wordmark__accent {
+  color: var(--musik);
+}
