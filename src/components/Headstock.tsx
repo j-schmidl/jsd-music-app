@@ -46,22 +46,43 @@ export function Headstock({ mode, target, detected, onSelect }: Props) {
           stroke="var(--fund-01)"
           strokeWidth="2"
         />
-        {/* Tuning pegs — 3 on each side */}
-        {[80, 170, 260].map((y) => (
+        {/* Strings running vertically from the pegs down to the nut */}
+        {[
+          { x: 60, pegY: 80 },
+          { x: 90, pegY: 170 },
+          { x: 120, pegY: 260 },
+          { x: 150, pegY: 260 },
+          { x: 180, pegY: 170 },
+          { x: 210, pegY: 80 },
+        ].map((s, i) => (
+          <line
+            key={`string-${i}`}
+            x1={s.x}
+            y1={s.pegY}
+            x2={s.x}
+            y2="400"
+            stroke="var(--fg)"
+            strokeWidth="1.2"
+            opacity="0.55"
+          />
+        ))}
+        {/* Tuning pegs — 3 on each side, with short peg stubs sticking out sideways */}
+        {[80, 170, 260].map((y, i) => (
           <g key={`peg-left-${y}`}>
-            <line x1="30" y1={y} x2="90" y2={y} stroke="var(--fund-light)" strokeWidth="1.5" />
-            <circle cx="95" cy={y} r="8" fill="var(--fund-light)" stroke="var(--fund-01)" strokeWidth="1" />
+            <line x1="30" y1={y} x2="60" y2={y} stroke="var(--fund-light)" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+            <circle cx="60" cy={y} r="9" fill="var(--fund-light)" stroke="var(--fund-01)" strokeWidth="1" />
+            <circle cx="60" cy={y} r="3" fill="var(--fund-01)" opacity="0.35" />
+            {/* Invisible anchor so React keeps index stable */}
+            <g style={{ display: 'none' }}>{i}</g>
           </g>
         ))}
-        {[80, 170, 260].map((y) => (
+        {[80, 170, 260].map((y, i) => (
           <g key={`peg-right-${y}`}>
-            <line x1="150" y1={y} x2="210" y2={y} stroke="var(--fund-light)" strokeWidth="1.5" />
-            <circle cx="145" cy={y} r="8" fill="var(--fund-light)" stroke="var(--fund-01)" strokeWidth="1" />
+            <line x1="180" y1={y} x2="210" y2={y} stroke="var(--fund-light)" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+            <circle cx="180" cy={y} r="9" fill="var(--fund-light)" stroke="var(--fund-01)" strokeWidth="1" />
+            <circle cx="180" cy={y} r="3" fill="var(--fund-01)" opacity="0.35" />
+            <g style={{ display: 'none' }}>{i}</g>
           </g>
-        ))}
-        {/* Strings descending to nut */}
-        {[95, 108, 120, 132, 145].map((x, i) => (
-          <line key={`string-${i}`} x1={x} y1="90" x2={x + (110 - x) * 0.1 + 110} y2="400" stroke="var(--fg)" strokeWidth="1" opacity="0.5" />
         ))}
         {/* Nut */}
         <rect x="40" y="380" width="160" height="6" fill="var(--fund-light)" />

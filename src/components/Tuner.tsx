@@ -1,5 +1,6 @@
 import type { GuitarString } from '../lib/tuning';
 import { centsOff, getTuningHint, isInTune } from '../lib/tuning';
+import { TunerRoll } from './TunerRoll';
 import './Tuner.css';
 
 type Props = {
@@ -27,11 +28,14 @@ export function Tuner({ frequency, target, listening, error, onStart }: Props) {
   else if (inTune) state = 'in-tune';
   else state = 'detected';
 
+  const rollValue = hasSignal ? clamped / MAX_DISPLAY_CENTS : null;
+
   return (
     <div className={`tuner tuner--${state}`} data-testid="tuner" data-state={state}>
       <div className="tuner__scale" aria-hidden="true">
         <span className="tuner__flat">♭</span>
         <div className="tuner__track">
+          <TunerRoll value={rollValue} inTune={inTune} />
           <div className="tuner__ticks">
             {[-50, -25, 0, 25, 50].map((v) => (
               <span key={v} className={v === 0 ? 'tuner__tick tuner__tick--center' : 'tuner__tick'} />

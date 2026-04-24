@@ -30,8 +30,10 @@
 .tuner__track {
   position: relative;
   flex: 1;
-  height: 100px;
+  height: 140px;
   margin: 0 12px;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .tuner__ticks {

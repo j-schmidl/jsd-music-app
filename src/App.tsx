@@ -17,10 +17,13 @@ export default function App() {
   const [pinned, setPinned] = useState<GuitarString | null>(null);
   const [activeTab, setActiveTab] = useState('stimmen');
   const pitch = usePitchDetection();
+  const demoFrequency = useDemoFrequency();
+
+  const effectiveFrequency = demoFrequency ?? pitch.frequency;
 
   const detected = useMemo<GuitarString | null>(
-    () => (pitch.frequency !== null ? nearestString(pitch.frequency) : null),
-    [pitch.frequency],
+    () => (effectiveFrequency !== null ? nearestString(effectiveFrequency) : null),
+    [effectiveFrequency],
   );
 
   const target = mode === 'auto' ? detected : pinned;
@@ -60,9 +63,9 @@ export default function App() {
 
       <main className="app__main">
         <Tuner
-          frequency={pitch.frequency}
+          frequency={effectiveFrequency}
           target={target}
-          listening={pitch.status === 'listening'}
+          listening={pitch.status === 'listening' || demoFrequency !== null}
           error={pitch.error}
           onStart={pitch.start}
         />
@@ -72,4 +75,31 @@ export default function App() {
       <BottomNav active={activeTab} onChange={setActiveTab} />
     </div>
   );
+}
+
+/**
+ * Returns a sine-wave frequency when the URL contains `?demo` — used for
+ * visual QA of the tuning display without needing microphone input. Returns
+ * null otherwise. The base note is A2 (110 Hz) and the sine ramps ±30 cents.
+ */
+function useDemoFrequency(): number | null {
+  const [freq, setFreq] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!new URLSearchParams(window.location.search).has('demo')) return;
+
+    const start = performance.now();
+    let raf = 0;
+    const tick = () => {
+      const t = (performance.now() - start) / 1000;
+      const cents = Math.sin(t * 1.6) * 30;
+      setFreq(110 * Math.pow(2, cents / 1200));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return freq;
 }
