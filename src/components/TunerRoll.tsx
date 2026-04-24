@@ -9,16 +9,25 @@ type Props = {
 };
 
 /**
- * A rotating-drum background behind the tuner needle. Each tick the existing
- * pixels scroll down (as if a roll of paper were turning) and a fresh mark is
- * stamped at the top at the horizontal position of the needle. Over time this
- * draws a line that records the recent tuning history in the CI colors.
+ * A seismograph-style tuning history behind the needle. Samples the current
+ * needle position on every frame into a ring buffer and draws it as a polyline
+ * flowing from right (newest) to left (oldest). The stroke uses the Musik
+ * accent for off-tune samples and Tech green for in-tune samples, matching
+ * the brand CI and the needle color itself.
  */
 export function TunerRoll({ value, inTune }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const valueRef = useRef(value);
   const inTuneRef = useRef(inTune);
   const rafRef = useRef<number | null>(null);
+
+  // History: a fixed-length ring buffer of { v, inTune } samples. We render
+  // it every frame as a continuous polyline across the canvas.
+  const HISTORY_LENGTH = 240;
+  const historyRef = useRef<{ v: number | null; inTune: boolean }[]>(
+    Array.from({ length: HISTORY_LENGTH }, () => ({ v: null, inTune: false })),
+  );
+  const writeIndexRef = useRef(0);
 
   useEffect(() => {
     valueRef.current = value;
@@ -39,55 +48,81 @@ export function TunerRoll({ value, inTune }: Props) {
       canvas.width = Math.max(1, Math.floor(clientWidth * dpr));
       canvas.height = Math.max(1, Math.floor(clientHeight * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, clientWidth, clientHeight);
     };
     resize();
-
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas);
 
     const styles = getComputedStyle(document.documentElement);
     const musik = styles.getPropertyValue('--musik').trim() || '#92A0F8';
     const tech = styles.getPropertyValue('--tech').trim() || '#8CEBCD';
+    const musikDim = `${musik}33`;
 
-    // Slow the scroll: only advance every other animation frame (~30Hz) so the
-    // trace is readable. A pure 60Hz 1px scroll flies by too fast on desktop.
-    let frame = 0;
+    // Throttle history writes so one sample ≈ one pixel of horizontal travel,
+    // instead of one sample per animation frame.
+    const WRITE_INTERVAL_MS = 30;
+    let lastWrite = 0;
 
-    const render = () => {
-      frame++;
+    const render = (now: number) => {
+      if (now - lastWrite >= WRITE_INTERVAL_MS) {
+        lastWrite = now;
+        const v = valueRef.current;
+        historyRef.current[writeIndexRef.current] = {
+          v: v !== null && Number.isFinite(v) ? Math.max(-1, Math.min(1, v)) : null,
+          inTune: inTuneRef.current,
+        };
+        writeIndexRef.current = (writeIndexRef.current + 1) % HISTORY_LENGTH;
+      }
+
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
+      ctx.clearRect(0, 0, w, h);
 
-      if (frame % 2 === 0) {
-        // Turn the drum — shift everything down by 1px. drawImage on the source
-        // canvas itself is well-defined and respects the transform matrix.
-        ctx.save();
-        ctx.globalCompositeOperation = 'copy';
-        ctx.drawImage(canvas, 0, 0, w, h, 0, 1, w, h);
-        ctx.restore();
+      // Center baseline
+      ctx.strokeStyle = musikDim;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2);
+      ctx.stroke();
 
-        // Clear the new top row ready for the fresh stamp.
-        ctx.clearRect(0, 0, w, 1.5);
+      // Draw history as a polyline, newest sample at the right edge.
+      const amplitude = (h / 2) * 0.85;
+      const step = w / (HISTORY_LENGTH - 1);
+      // Read oldest → newest in chronological order.
+      const start = writeIndexRef.current; // oldest slot
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      let lastColor: string | null = null;
+      let pathOpen = false;
+
+      for (let i = 0; i < HISTORY_LENGTH; i++) {
+        const sample = historyRef.current[(start + i) % HISTORY_LENGTH];
+        const x = i * step;
+        if (sample.v === null) {
+          // Break the line on gaps (no signal).
+          if (pathOpen) {
+            ctx.stroke();
+            pathOpen = false;
+          }
+          continue;
+        }
+        const y = h / 2 - sample.v * amplitude;
+        const color = sample.inTune ? tech : musik;
+        if (!pathOpen || color !== lastColor) {
+          if (pathOpen) ctx.stroke();
+          ctx.beginPath();
+          ctx.strokeStyle = color;
+          ctx.moveTo(x, y);
+          pathOpen = true;
+          lastColor = color;
+        } else {
+          ctx.lineTo(x, y);
+        }
       }
-
-      // Stamp a fresh mark at the top. When a signal is present, draw at the
-      // needle's x in the state-matched CI color. When idle, mark a subtle
-      // centre tick so the drum visibly turns even without mic input.
-      const v = valueRef.current;
-      if (v !== null && Number.isFinite(v)) {
-        const clamped = Math.max(-1, Math.min(1, v));
-        const x = w / 2 + (clamped * w) / 2;
-        const color = inTuneRef.current ? tech : musik;
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(x, 1.2, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (frame % 2 === 0) {
-        // Subtle idle tick on the centre line.
-        ctx.fillStyle = `${musik}55`;
-        ctx.fillRect(w / 2 - 0.5, 0.8, 1, 1);
-      }
+      if (pathOpen) ctx.stroke();
 
       rafRef.current = requestAnimationFrame(render);
     };

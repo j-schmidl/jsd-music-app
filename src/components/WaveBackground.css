@@ -6,15 +6,24 @@
   z-index: 0;
 }
 
+/* Each layer is scaled massively past the viewport and slowly rotates around
+   its own center. The oversizing means the rotated shape always fully covers
+   the visible area — no blank corners when it spins. */
 .wave-bg__layer {
   position: absolute;
-  left: -10%;
-  right: -10%;
-  opacity: 0.14;
+  top: 50%;
+  left: 50%;
+  width: 320vmax;
+  height: 320vmax;
+  transform-origin: center center;
+  opacity: 0.16;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wave-bg__layer svg {
-  width: 120%;
+  width: 100%;
   height: auto;
   display: block;
 }
@@ -25,22 +34,57 @@
   fill: none;
 }
 
+/* Three layers, each rotating at a different speed + direction so the pattern
+   never lines up — creates a subtle moiré-interference effect (matching the
+   Markensystem's Interferenz concept). */
 .wave-bg__layer--top {
-  top: -4%;
-  transform: rotate(-2deg);
+  animation: waveSpinA 120s linear infinite;
+  opacity: 0.14;
 }
 
 .wave-bg__layer--mid {
-  top: 38%;
+  animation: waveSpinB 180s linear infinite;
   opacity: 0.18;
 }
 
 .wave-bg__layer--bottom {
-  bottom: 12%;
-  opacity: 0.12;
-  transform: rotate(1deg);
+  animation: waveSpinC 240s linear infinite;
+  opacity: 0.1;
+}
+
+@keyframes waveSpinA {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes waveSpinB {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(-360deg);
+  }
+}
+
+@keyframes waveSpinC {
+  from {
+    transform: translate(-50%, -50%) rotate(20deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(380deg);
+  }
 }
 
 [data-theme='light'] .wave-bg__layer {
   opacity: 0.22;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-bg__layer {
+    animation: none !important;
+  }
 }

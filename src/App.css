@@ -84,7 +84,7 @@ button {
 
 .app__header {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   display: grid;
   grid-template-columns: 44px 1fr auto;
   align-items: center;
@@ -98,9 +98,25 @@ button {
   justify-content: flex-start;
 }
 
+.app__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Full-page seismograph canvas behind all controls but above the decorative
+   wave background. z-index stays below the header actions (3) and the main
+   interactive layer (2). */
+.app__seismograph {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
 .app__subtitle {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   padding: 0 16px 8px;
   color: var(--fg);
 }
@@ -127,7 +143,7 @@ button {
 
 .app__main {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   flex: 1;
   display: flex;
   flex-direction: column;

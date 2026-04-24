@@ -5,7 +5,8 @@
   height: 100%;
   display: block;
   pointer-events: none;
-  /* Soft fade at the bottom so the drum feels like it rotates off the visible edge. */
-  mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
+  /* Soft horizontal fade at the left edge so older samples gently dim as they
+     flow off the seismograph strip, keeping focus on the newer activity. */
+  mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 100%);
 }

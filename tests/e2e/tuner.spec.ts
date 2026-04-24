@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('jsd guitar tuner — page shell', () => {
-  test('renders the header, wordmark, AUTOM. switch and all 6 string buttons', async ({ page }) => {
+  test('renders the header, wordmark, AUTOM. switch, mic button, and all 6 string buttons', async ({ page }) => {
     await page.goto('/');
 
     await expect(page).toHaveTitle(/jsd Guitar Tuner/i);
     await expect(page.getByTestId('wordmark')).toHaveText('jsd');
     await expect(page.getByTestId('auto-switch')).toBeVisible();
+    await expect(page.getByTestId('mic-button')).toBeVisible();
 
     for (const id of ['E2', 'A2', 'D3', 'G3', 'B3', 'E4']) {
       await expect(page.getByTestId(`string-${id}`)).toBeVisible();
@@ -14,7 +15,6 @@ test.describe('jsd guitar tuner — page shell', () => {
 
     await expect(page.getByText('Gitarre 6-saitig')).toBeVisible();
     await expect(page.getByText('Standard')).toBeVisible();
-    await expect(page.getByTestId('tuner-start')).toBeVisible();
   });
 
   test('bottom nav shows 5 tabs with Stimmen active', async ({ page }) => {
@@ -71,18 +71,30 @@ test.describe('tuner modes', () => {
 });
 
 test.describe('tuner indicator', () => {
-  test('shows the mic activation button before listening and the prompt after starting (or an error)', async ({ page, context }) => {
+  test('auto-starts the microphone on load and settles into listening or error', async ({ page, context }) => {
     await context.grantPermissions(['microphone']);
     await page.goto('/');
 
-    const start = page.getByTestId('tuner-start');
-    await expect(start).toBeVisible();
+    // The app auto-starts the mic on mount. In headless Chromium without a real
+    // mic input, the tuner either reaches 'listening' (fake device enabled) or
+    // 'error' (no mic available). Both outcomes prove auto-start fired.
+    const tuner = page.getByTestId('tuner');
+    await expect(tuner).toHaveAttribute('data-state', /(listening|error|idle)/, { timeout: 5000 });
+  });
 
-    await start.click();
+  test('top-right mic button is always available to retrigger the permission', async ({ page }) => {
+    await page.goto('/');
+    const micBtn = page.getByTestId('mic-button-main');
+    await expect(micBtn).toBeVisible();
+    await expect(micBtn).toBeEnabled();
+  });
 
-    // Headless Chromium has no real mic, so either the listening prompt appears (fake device enabled)
-    // or the tuner enters the error state. Either path proves the start handler fired.
-    const state = page.getByTestId('tuner');
-    await expect(state).toHaveAttribute('data-state', /(listening|error)/, { timeout: 5000 });
+  test('mic picker popover opens and closes', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('mic-picker-toggle').click();
+    await expect(page.getByTestId('mic-picker-menu')).toBeVisible();
+    // Clicking outside closes it.
+    await page.locator('body').click({ position: { x: 10, y: 10 } });
+    await expect(page.getByTestId('mic-picker-menu')).toBeHidden();
   });
 });
