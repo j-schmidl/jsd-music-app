@@ -70,6 +70,29 @@ test.describe('tuner modes', () => {
   });
 });
 
+test.describe('tuning selector', () => {
+  test('starts on Standard and lists alternative tunings', async ({ page }) => {
+    await page.goto('/');
+    const trigger = page.getByTestId('tuning-selector');
+    await expect(trigger).toContainText('Standard');
+    await trigger.click();
+    const menu = page.getByTestId('tuning-selector-menu');
+    await expect(menu).toBeVisible();
+    await expect(page.getByTestId('tuning-option-drop-d')).toBeVisible();
+    await expect(page.getByTestId('tuning-option-dadgad')).toBeVisible();
+    await expect(page.getByTestId('tuning-option-open-g')).toBeVisible();
+  });
+
+  test('selecting Drop D updates the trigger label and the bottom-left string label', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('tuning-selector').click();
+    await page.getByTestId('tuning-option-drop-d').click();
+    await expect(page.getByTestId('tuning-selector')).toContainText('Drop D');
+    // Bottom-left string in the headstock is now D (instead of E in standard).
+    await expect(page.getByTestId('string-D2')).toBeVisible();
+  });
+});
+
 test.describe('tuner indicator', () => {
   test('auto-starts the microphone on load and settles into listening or error', async ({ page, context }) => {
     await context.grantPermissions(['microphone']);

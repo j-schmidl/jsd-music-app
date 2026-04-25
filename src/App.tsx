@@ -6,15 +6,17 @@ import { Headstock } from './components/Headstock';
 import { MicButton } from './components/MicButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Tuner } from './components/Tuner';
+import { TuningSelector } from './components/TuningSelector';
 import { WaveBackground } from './components/WaveBackground';
 import { Wordmark } from './components/Wordmark';
 import { usePitchDetection } from './hooks/usePitchDetection';
 import { useTheme } from './hooks/useTheme';
-import { STRINGS, nearestString, type GuitarString } from './lib/tuning';
+import { TUNINGS, nearestString, type GuitarString, type Tuning } from './lib/tuning';
 
 export default function App() {
   const { theme, toggle } = useTheme();
   const [mode, setMode] = useState<'auto' | 'manual'>('auto');
+  const [tuning, setTuning] = useState<Tuning>(TUNINGS[0]);
   const [pinned, setPinned] = useState<GuitarString | null>(null);
   const [activeTab, setActiveTab] = useState('stimmen');
   const pitch = usePitchDetection();
@@ -23,8 +25,8 @@ export default function App() {
   const effectiveFrequency = demoFrequency ?? pitch.frequency;
 
   const detected = useMemo<GuitarString | null>(
-    () => (effectiveFrequency !== null ? nearestString(effectiveFrequency) : null),
-    [effectiveFrequency],
+    () => (effectiveFrequency !== null ? nearestString(effectiveFrequency, tuning.strings) : null),
+    [effectiveFrequency, tuning],
   );
 
   const target = mode === 'auto' ? detected : pinned;
@@ -32,12 +34,19 @@ export default function App() {
   useEffect(() => {
     // When flipping auto → manual, seed pinned from the last detection so the UI stays anchored.
     if (mode === 'manual' && !pinned) {
-      setPinned(detected ?? STRINGS[0]);
+      setPinned(detected ?? tuning.strings[0]);
     }
     if (mode === 'auto' && pinned) {
       setPinned(null);
     }
-  }, [mode, pinned, detected]);
+  }, [mode, pinned, detected, tuning]);
+
+  // Switching tunings invalidates any pinned string from the previous preset.
+  useEffect(() => {
+    if (pinned && !tuning.strings.some((s) => s.id === pinned.id)) {
+      setPinned(null);
+    }
+  }, [tuning, pinned]);
 
   // Auto-start the microphone once on mount so the user does not have to tap
   // a "start" button first. If the browser blocks (permission denied, no mic),
@@ -79,10 +88,8 @@ export default function App() {
       </header>
 
       <div className="app__subtitle">
-        <span className="app__subtitle-main">
-          Gitarre 6-saitig <span className="app__subtitle-chevron">›</span>
-        </span>
-        <span className="app__subtitle-secondary">Standard</span>
+        <span className="app__subtitle-main">Gitarre 6-saitig</span>
+        <TuningSelector active={tuning} onChange={setTuning} />
       </div>
 
       <main className="app__main">
@@ -93,7 +100,13 @@ export default function App() {
           error={pitch.error}
           onStart={() => void pitch.start()}
         />
-        <Headstock mode={mode} target={target} detected={detected} onSelect={handleSelectString} />
+        <Headstock
+          tuning={tuning}
+          mode={mode}
+          target={target}
+          detected={detected}
+          onSelect={handleSelectString}
+        />
       </main>
 
       <BottomNav active={activeTab} onChange={setActiveTab} />

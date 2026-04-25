@@ -6,40 +6,37 @@
   z-index: 0;
 }
 
-/* Each "orbit" is a 0×0 anchor at the rotation pivot. Inside it, the wave
-   shape is offset so its center sits in a chosen direction relative to the
-   pivot. Rotating the orbit makes the shape sweep around that pivot.
+/* Each "orbit" is a 0×0 anchor pinned just above the visible area of the app
+   (so its center is at y = 0 of the page). The shape inside hangs down into
+   the page and pendulums slowly around the pivot, always staying at least
+   partially in view.
 
-   Pivot 1: above the top-right corner of the app.
-   Pivot 2: above the top-left corner of the app.
-
-   The shapes themselves are kept relatively small (60vw width) so they read
-   as gentle background figures rather than dominating the page. */
+   First pivot: top-right corner of the app.
+   Second pivot: top-left corner of the app. */
 
 .wave-bg__orbit {
   position: absolute;
   width: 0;
   height: 0;
+  top: 0;
 }
 
 .wave-bg__orbit--top-right {
-  top: -8vh;
   right: 0;
-  animation: orbitA 60s linear infinite;
+  animation: orbitSwingA 40s ease-in-out infinite alternate;
 }
 
 .wave-bg__orbit--top-left {
-  top: -8vh;
   left: 0;
-  animation: orbitB 80s linear infinite reverse;
+  animation: orbitSwingB 56s ease-in-out infinite alternate;
 }
 
 .wave-bg__shape {
   position: absolute;
   display: block;
-  width: 140vw;
-  max-width: 900px;
-  opacity: 0.07;
+  width: 110vw;
+  max-width: 720px;
+  opacity: 0.16;
 }
 
 .wave-bg__shape svg {
@@ -54,36 +51,39 @@
   fill: none;
 }
 
+/* Shape A hangs from the top-right pivot, extending leftward + downward. */
 .wave-bg__shape--a {
-  /* Hangs down-and-to-the-left from the top-right pivot. */
-  transform: translate(-90%, 10%);
+  transform: translate(-92%, 0%);
 }
 
+/* Shape B hangs from the top-left pivot, extending rightward + downward. */
 .wave-bg__shape--b {
-  /* Hangs down-and-to-the-right from the top-left pivot. */
-  transform: translate(-10%, 10%);
+  transform: translate(-8%, 0%);
 }
 
-@keyframes orbitA {
+/* Each pivot pendulums through a small angular arc so the shape is always
+   visible but never sits perfectly still. Different durations and phases
+   prevent the two from ever lining up. */
+@keyframes orbitSwingA {
   from {
-    transform: rotate(0deg);
+    transform: rotate(-18deg);
   }
   to {
-    transform: rotate(360deg);
+    transform: rotate(22deg);
   }
 }
 
-@keyframes orbitB {
+@keyframes orbitSwingB {
   from {
-    transform: rotate(0deg);
+    transform: rotate(20deg);
   }
   to {
-    transform: rotate(360deg);
+    transform: rotate(-20deg);
   }
 }
 
 [data-theme='light'] .wave-bg__shape {
-  opacity: 0.12;
+  opacity: 0.22;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,20 +1,22 @@
-import { STRINGS, type GuitarString } from '../lib/tuning';
+import type { GuitarString, Tuning } from '../lib/tuning';
 import './Headstock.css';
 
 type Props = {
+  tuning: Tuning;
   mode: 'auto' | 'manual';
   target: GuitarString | null;
   detected: GuitarString | null;
   onSelect: (s: GuitarString) => void;
 };
 
-// D / A / E on the left column (indices 2, 1, 0), G / B / E on the right (indices 3, 4, 5).
-const LEFT_ORDER = ['D3', 'A2', 'E2'] as const;
-const RIGHT_ORDER = ['G3', 'B3', 'E4'] as const;
-
-export function Headstock({ mode, target, detected, onSelect }: Props) {
-  const left = LEFT_ORDER.map((id) => STRINGS.find((s) => s.id === id)!);
-  const right = RIGHT_ORDER.map((id) => STRINGS.find((s) => s.id === id)!);
+export function Headstock({ tuning, mode, target, detected, onSelect }: Props) {
+  // Tuning strings are ordered low → high (E2, A2, D3, G3, B3, E4 for standard).
+  // Headstock columns mirror that visually: left column (top→bottom) shows
+  // 4th, 5th, 6th strings (D, A, low E) and right column shows 3rd, 2nd, 1st
+  // (G, B, high E). Index 0 is the lowest pitch, index 5 the highest.
+  const s = tuning.strings;
+  const left = [s[2], s[1], s[0]];
+  const right = [s[3], s[4], s[5]];
 
   return (
     <div className="headstock">

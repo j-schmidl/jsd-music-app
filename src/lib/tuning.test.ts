@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { STRINGS, centsOff, getTuningHint, isInTune, nearestString } from './tuning';
+import { STRINGS, TUNINGS, centsOff, getTuningHint, isInTune, nearestString } from './tuning';
 
 describe('STRINGS', () => {
   it('contains the six standard guitar strings in pitch order', () => {
@@ -74,5 +74,44 @@ describe('getTuningHint', () => {
 
   it('returns hoeher for flat notes (need to tune up)', () => {
     expect(getTuningHint(-15)).toBe('hoeher');
+  });
+});
+
+describe('TUNINGS', () => {
+  it('starts with the standard tuning that matches STRINGS', () => {
+    expect(TUNINGS[0].id).toBe('standard');
+    expect(TUNINGS[0].strings).toEqual(STRINGS);
+  });
+
+  it('every preset has six strings ordered by ascending frequency', () => {
+    for (const t of TUNINGS) {
+      expect(t.strings).toHaveLength(6);
+      for (let i = 1; i < t.strings.length; i++) {
+        expect(t.strings[i].freq).toBeGreaterThan(t.strings[i - 1].freq);
+      }
+    }
+  });
+
+  it('Drop D drops the low E to D2', () => {
+    const dropD = TUNINGS.find((t) => t.id === 'drop-d')!;
+    expect(dropD.strings[0].id).toBe('D2');
+    expect(dropD.strings.slice(1).map((s) => s.id)).toEqual(['A2', 'D3', 'G3', 'B3', 'E4']);
+  });
+
+  it('DADGAD strings are D2 A2 D3 G3 A3 D4', () => {
+    const dadgad = TUNINGS.find((t) => t.id === 'dadgad')!;
+    expect(dadgad.strings.map((s) => s.id)).toEqual(['D2', 'A2', 'D3', 'G3', 'A3', 'D4']);
+  });
+});
+
+describe('nearestString with custom tunings', () => {
+  it('uses the supplied string list when provided', () => {
+    const dropD = TUNINGS.find((t) => t.id === 'drop-d')!;
+    // ~73 Hz is closer to D2 (~73.42) than to E2 (~82.41)
+    expect(nearestString(73, dropD.strings).id).toBe('D2');
+  });
+
+  it('falls back to standard tuning when no strings argument is given', () => {
+    expect(nearestString(82).id).toBe('E2');
   });
 });
