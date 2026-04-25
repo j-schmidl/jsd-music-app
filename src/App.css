@@ -104,16 +104,6 @@ button {
   gap: 10px;
 }
 
-/* Full-page seismograph canvas behind all controls but above the decorative
-   wave background. z-index stays below the header actions (3) and the main
-   interactive layer (2). */
-.app__seismograph {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
 .app__subtitle {
   position: relative;
   z-index: 3;

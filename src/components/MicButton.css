@@ -90,12 +90,12 @@
   }
 }
 
+/* Portaled to document.body via React.createPortal — `position: fixed` and
+   `top` / `right` are set inline from JS so the menu stays anchored to the
+   trigger but escapes any parent stacking context. */
 .mic-btn__menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 220px;
-  max-width: 280px;
+  min-width: 240px;
+  max-width: 320px;
   margin: 0;
   padding: 6px;
   list-style: none;
@@ -103,8 +103,8 @@
   color: var(--fg);
   border: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  z-index: 20;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  z-index: 1000;
 }
 
 .mic-btn__menu-empty {

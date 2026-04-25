@@ -6,38 +6,48 @@ type Props = {
   value: number | null;
   /** True when the detected note is within tuning tolerance. */
   inTune: boolean;
+  /**
+   * Half-width (in CSS pixels) of the needle's lateral travel range. Each
+   * sample is plotted at `centerX + value * deflection` so the trail's bottom
+   * edge always lines up with the needle dot's center.
+   */
+  deflection?: number;
 };
 
 /**
- * A seismograph-style tuning history behind the needle. Samples the current
- * needle position on every frame into a ring buffer and draws it as a polyline
- * flowing from right (newest) to left (oldest). The stroke uses the Musik
- * accent for off-tune samples and Tech green for in-tune samples, matching
- * the brand CI and the needle color itself.
+ * A vertical seismograph that lives directly above the needle dot. The newest
+ * sample is drawn at the very top of the strip; samples flow down each frame
+ * and meet the dot at the bottom. The horizontal coordinate maps 1:1 to the
+ * needle's deflection so the trail and the needle share the same x-axis —
+ * the line literally arrives at the top of the dot.
+ *
+ * History is kept in a JS ring buffer (rather than scrolling the bitmap) so
+ * we can re-render the full trail every frame without any composite-mode
+ * shenanigans. This is more reliable than getImageData/putImageData scrolling
+ * and works the same across browsers and DPRs.
  */
-export function TunerRoll({ value, inTune }: Props) {
+export function TunerRoll({ value, inTune, deflection = 110 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const valueRef = useRef(value);
   const inTuneRef = useRef(inTune);
+  const deflectionRef = useRef(deflection);
   const rafRef = useRef<number | null>(null);
 
-  // History: a fixed-length ring buffer of { v, inTune } samples. We render
-  // it every frame as a continuous polyline across the canvas.
-  const HISTORY_LENGTH = 240;
-  const historyRef = useRef<{ v: number | null; inTune: boolean }[]>(
-    Array.from({ length: HISTORY_LENGTH }, () => ({ v: null, inTune: false })),
-  );
-  const writeIndexRef = useRef(0);
+  // Ring buffer of recent samples. One sample is captured per visible row of
+  // history (1px). At 60fps with WRITE_INTERVAL_MS=16 that means the trail
+  // moves 1px down per frame which reads as a smooth flow.
+  const HISTORY = useRef<{ x: number | null; inTune: boolean }[]>([]);
+  const HEAD = useRef(0);
 
   useEffect(() => {
     valueRef.current = value;
     inTuneRef.current = inTune;
-  }, [value, inTune]);
+    deflectionRef.current = deflection;
+  }, [value, inTune, deflection]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -48,6 +58,10 @@ export function TunerRoll({ value, inTune }: Props) {
       canvas.width = Math.max(1, Math.floor(clientWidth * dpr));
       canvas.height = Math.max(1, Math.floor(clientHeight * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // (Re)allocate the history buffer to match the new pixel height.
+      const len = Math.max(1, Math.floor(clientHeight));
+      HISTORY.current = Array.from({ length: len }, () => ({ x: null, inTune: false }));
+      HEAD.current = 0;
     };
     resize();
     const resizeObserver = new ResizeObserver(resize);
@@ -56,73 +70,65 @@ export function TunerRoll({ value, inTune }: Props) {
     const styles = getComputedStyle(document.documentElement);
     const musik = styles.getPropertyValue('--musik').trim() || '#92A0F8';
     const tech = styles.getPropertyValue('--tech').trim() || '#8CEBCD';
-    const musikDim = `${musik}33`;
 
-    // Throttle history writes so one sample ≈ one pixel of horizontal travel,
-    // instead of one sample per animation frame.
-    const WRITE_INTERVAL_MS = 30;
-    let lastWrite = 0;
+    // Capture and render once per ~16ms so the trail flows ~60px/sec.
+    const FRAME_INTERVAL_MS = 16;
+    let lastFrame = 0;
 
     const render = (now: number) => {
-      if (now - lastWrite >= WRITE_INTERVAL_MS) {
-        lastWrite = now;
-        const v = valueRef.current;
-        historyRef.current[writeIndexRef.current] = {
-          v: v !== null && Number.isFinite(v) ? Math.max(-1, Math.min(1, v)) : null,
-          inTune: inTuneRef.current,
-        };
-        writeIndexRef.current = (writeIndexRef.current + 1) % HISTORY_LENGTH;
-      }
-
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
-      ctx.clearRect(0, 0, w, h);
 
-      // Center baseline
-      ctx.strokeStyle = musikDim;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, h / 2);
-      ctx.lineTo(w, h / 2);
-      ctx.stroke();
+      if (now - lastFrame >= FRAME_INTERVAL_MS) {
+        lastFrame = now;
 
-      // Draw history as a polyline, newest sample at the right edge.
-      const amplitude = (h / 2) * 0.85;
-      const step = w / (HISTORY_LENGTH - 1);
-      // Read oldest → newest in chronological order.
-      const start = writeIndexRef.current; // oldest slot
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
+        // Capture a new sample at the head of the ring buffer.
+        const v = valueRef.current;
+        const x =
+          v !== null && Number.isFinite(v)
+            ? w / 2 + Math.max(-1, Math.min(1, v)) * deflectionRef.current
+            : null;
+        HISTORY.current[HEAD.current] = { x, inTune: inTuneRef.current };
+        HEAD.current = (HEAD.current + 1) % HISTORY.current.length;
 
-      let lastColor: string | null = null;
-      let pathOpen = false;
+        // Repaint the whole strip from the buffer. y=0 is the freshest sample
+        // (the top of the strip) and y=h-1 is the oldest.
+        ctx.clearRect(0, 0, w, h);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = 2;
 
-      for (let i = 0; i < HISTORY_LENGTH; i++) {
-        const sample = historyRef.current[(start + i) % HISTORY_LENGTH];
-        const x = i * step;
-        if (sample.v === null) {
-          // Break the line on gaps (no signal).
-          if (pathOpen) {
-            ctx.stroke();
-            pathOpen = false;
+        let prev: { x: number | null; inTune: boolean } | null = null;
+        let pathOpen = false;
+        let lastColor: string | null = null;
+
+        for (let row = 0; row < h && row < HISTORY.current.length; row++) {
+          // Walk the buffer backwards from HEAD so row 0 is the newest sample.
+          const idx = (HEAD.current - 1 - row + HISTORY.current.length) % HISTORY.current.length;
+          const sample = HISTORY.current[idx];
+          if (sample.x === null) {
+            if (pathOpen) {
+              ctx.stroke();
+              pathOpen = false;
+            }
+            prev = null;
+            continue;
           }
-          continue;
+          const color = sample.inTune ? tech : musik;
+          if (!pathOpen || color !== lastColor || prev?.x === null) {
+            if (pathOpen) ctx.stroke();
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.moveTo(sample.x, row + 0.5);
+            pathOpen = true;
+            lastColor = color;
+          } else {
+            ctx.lineTo(sample.x, row + 0.5);
+          }
+          prev = sample;
         }
-        const y = h / 2 - sample.v * amplitude;
-        const color = sample.inTune ? tech : musik;
-        if (!pathOpen || color !== lastColor) {
-          if (pathOpen) ctx.stroke();
-          ctx.beginPath();
-          ctx.strokeStyle = color;
-          ctx.moveTo(x, y);
-          pathOpen = true;
-          lastColor = color;
-        } else {
-          ctx.lineTo(x, y);
-        }
+        if (pathOpen) ctx.stroke();
       }
-      if (pathOpen) ctx.stroke();
 
       rafRef.current = requestAnimationFrame(render);
     };

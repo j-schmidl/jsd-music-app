@@ -30,10 +30,24 @@
 .tuner__track {
   position: relative;
   flex: 1;
-  height: 140px;
+  height: 220px;
   margin: 0 12px;
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
+}
+
+/* The seismograph strip lives ABOVE the needle dot. Its top sits at the top
+   of the track and its bottom edge meets the highest point of the needle dot.
+   The dot is 56px tall and centered at translateY(-50%) on the track's
+   bottom edge, so its TOP edge is 28px (half the dot) + 56px (full dot
+   height) = 84px above the track's bottom. */
+.tuner__roll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 84px;
+  pointer-events: none;
 }
 
 .tuner__ticks {
@@ -42,7 +56,8 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 0 8px 8px;
+  padding: 0 8px 4px;
+  pointer-events: none;
 }
 
 .tuner__tick {
@@ -59,13 +74,26 @@
 .tuner__needle {
   position: absolute;
   top: 0;
+  bottom: 0;
   left: 50%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
   transition: transform 90ms linear, color 160ms ease;
   color: var(--fg);
+  z-index: 2;
+}
+
+/* The "pen" — a short vertical stub just above the needle dot. It is the
+   stylus that draws the seismograph trace below it. Kept short so it does
+   not paint over the historical trail flowing down the strip. */
+.tuner__needle-line {
+  width: 2px;
+  height: 22px;
+  background: currentColor;
+  opacity: 0.9;
+  margin-bottom: -2px;
 }
 
 .tuner--detected .tuner__needle {
@@ -74,13 +102,6 @@
 
 .tuner--in-tune .tuner__needle {
   color: var(--tech);
-}
-
-.tuner__needle-line {
-  width: 2px;
-  flex: 1;
-  background: currentColor;
-  opacity: 0.7;
 }
 
 .tuner__needle-dot {

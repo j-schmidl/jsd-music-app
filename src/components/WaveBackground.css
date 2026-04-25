@@ -6,85 +6,88 @@
   z-index: 0;
 }
 
-/* Each layer is scaled massively past the viewport and slowly rotates around
-   its own center. The oversizing means the rotated shape always fully covers
-   the visible area — no blank corners when it spins. */
-.wave-bg__layer {
+/* Each "orbit" is a 0×0 anchor at the rotation pivot. Inside it, the wave
+   shape is offset so its center sits in a chosen direction relative to the
+   pivot. Rotating the orbit makes the shape sweep around that pivot.
+
+   Pivot 1: above the top-right corner of the app.
+   Pivot 2: above the top-left corner of the app.
+
+   The shapes themselves are kept relatively small (60vw width) so they read
+   as gentle background figures rather than dominating the page. */
+
+.wave-bg__orbit {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 320vmax;
-  height: 320vmax;
-  transform-origin: center center;
-  opacity: 0.16;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 0;
+  height: 0;
 }
 
-.wave-bg__layer svg {
+.wave-bg__orbit--top-right {
+  top: -8vh;
+  right: 0;
+  animation: orbitA 60s linear infinite;
+}
+
+.wave-bg__orbit--top-left {
+  top: -8vh;
+  left: 0;
+  animation: orbitB 80s linear infinite reverse;
+}
+
+.wave-bg__shape {
+  position: absolute;
+  display: block;
+  width: 140vw;
+  max-width: 900px;
+  opacity: 0.07;
+}
+
+.wave-bg__shape svg {
   width: 100%;
   height: auto;
   display: block;
 }
 
-.wave-bg__layer svg line,
-.wave-bg__layer svg path {
+.wave-bg__shape svg line,
+.wave-bg__shape svg path {
   stroke: var(--musik);
   fill: none;
 }
 
-/* Three layers, each rotating at a different speed + direction so the pattern
-   never lines up — creates a subtle moiré-interference effect (matching the
-   Markensystem's Interferenz concept). */
-.wave-bg__layer--top {
-  animation: waveSpinA 120s linear infinite;
-  opacity: 0.14;
+.wave-bg__shape--a {
+  /* Hangs down-and-to-the-left from the top-right pivot. */
+  transform: translate(-90%, 10%);
 }
 
-.wave-bg__layer--mid {
-  animation: waveSpinB 180s linear infinite;
-  opacity: 0.18;
+.wave-bg__shape--b {
+  /* Hangs down-and-to-the-right from the top-left pivot. */
+  transform: translate(-10%, 10%);
 }
 
-.wave-bg__layer--bottom {
-  animation: waveSpinC 240s linear infinite;
-  opacity: 0.1;
-}
-
-@keyframes waveSpinA {
+@keyframes orbitA {
   from {
-    transform: translate(-50%, -50%) rotate(0deg);
+    transform: rotate(0deg);
   }
   to {
-    transform: translate(-50%, -50%) rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 
-@keyframes waveSpinB {
+@keyframes orbitB {
   from {
-    transform: translate(-50%, -50%) rotate(0deg);
+    transform: rotate(0deg);
   }
   to {
-    transform: translate(-50%, -50%) rotate(-360deg);
+    transform: rotate(360deg);
   }
 }
 
-@keyframes waveSpinC {
-  from {
-    transform: translate(-50%, -50%) rotate(20deg);
-  }
-  to {
-    transform: translate(-50%, -50%) rotate(380deg);
-  }
-}
-
-[data-theme='light'] .wave-bg__layer {
-  opacity: 0.22;
+[data-theme='light'] .wave-bg__shape {
+  opacity: 0.12;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wave-bg__layer {
+  .wave-bg__orbit {
     animation: none !important;
   }
 }

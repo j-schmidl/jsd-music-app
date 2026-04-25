@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import './WaveBackground.css';
 
-const WAVE_ASSETS = ['/waves/element_05.svg', '/waves/element_09.svg', '/waves/element_10.svg'];
+// Two distinct wave figures from the Markensystem delivery. They orbit around
+// pivots placed above the visible app: one above the top-right corner, one
+// above the top-left corner.
+const WAVE_ASSETS = ['/waves/element_09.svg', '/waves/element_10.svg'];
 
 export function WaveBackground() {
   const [markups, setMarkups] = useState<string[]>([]);
@@ -24,9 +27,16 @@ export function WaveBackground() {
 
   return (
     <div className="wave-bg" aria-hidden="true">
-      {markups[0] && <div className="wave-bg__layer wave-bg__layer--top" dangerouslySetInnerHTML={{ __html: markups[0] }} />}
-      {markups[1] && <div className="wave-bg__layer wave-bg__layer--mid" dangerouslySetInnerHTML={{ __html: markups[1] }} />}
-      {markups[2] && <div className="wave-bg__layer wave-bg__layer--bottom" dangerouslySetInnerHTML={{ __html: markups[2] }} />}
+      {markups[0] && (
+        <div className="wave-bg__orbit wave-bg__orbit--top-right">
+          <div className="wave-bg__shape wave-bg__shape--a" dangerouslySetInnerHTML={{ __html: markups[0] }} />
+        </div>
+      )}
+      {markups[1] && (
+        <div className="wave-bg__orbit wave-bg__orbit--top-left">
+          <div className="wave-bg__shape wave-bg__shape--b" dangerouslySetInnerHTML={{ __html: markups[1] }} />
+        </div>
+      )}
     </div>
   );
 }

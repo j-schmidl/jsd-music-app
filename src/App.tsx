@@ -6,15 +6,11 @@ import { Headstock } from './components/Headstock';
 import { MicButton } from './components/MicButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Tuner } from './components/Tuner';
-import { TunerRoll } from './components/TunerRoll';
 import { WaveBackground } from './components/WaveBackground';
 import { Wordmark } from './components/Wordmark';
-import { centsOff, isInTune } from './lib/tuning';
 import { usePitchDetection } from './hooks/usePitchDetection';
 import { useTheme } from './hooks/useTheme';
 import { STRINGS, nearestString, type GuitarString } from './lib/tuning';
-
-const MAX_DISPLAY_CENTS = 50;
 
 export default function App() {
   const { theme, toggle } = useTheme();
@@ -32,16 +28,6 @@ export default function App() {
   );
 
   const target = mode === 'auto' ? detected : pinned;
-
-  // Compute the normalized seismograph value from the current frequency vs
-  // the active target, so the full-page roll shares the same state as the
-  // needle. Value is in [-1, 1]; null when there is no signal yet.
-  const rollValue =
-    effectiveFrequency !== null && target !== null
-      ? Math.max(-1, Math.min(1, centsOff(effectiveFrequency, target.freq) / MAX_DISPLAY_CENTS))
-      : null;
-  const rollInTune =
-    effectiveFrequency !== null && target !== null && isInTune(centsOff(effectiveFrequency, target.freq));
 
   useEffect(() => {
     // When flipping auto → manual, seed pinned from the last detection so the UI stays anchored.
@@ -74,9 +60,6 @@ export default function App() {
   return (
     <div className="app" data-theme-current={theme}>
       <WaveBackground />
-      <div className="app__seismograph" aria-hidden="true">
-        <TunerRoll value={rollValue} inTune={rollInTune} />
-      </div>
 
       <header className="app__header">
         <ThemeToggle theme={theme} onToggle={toggle} />

@@ -1,5 +1,6 @@
 import type { GuitarString } from '../lib/tuning';
 import { centsOff, getTuningHint, isInTune } from '../lib/tuning';
+import { TunerRoll } from './TunerRoll';
 import './Tuner.css';
 
 type Props = {
@@ -27,11 +28,19 @@ export function Tuner({ frequency, target, listening, error, onStart }: Props) {
   else if (inTune) state = 'in-tune';
   else state = 'detected';
 
+  const rollValue = hasSignal ? clamped / MAX_DISPLAY_CENTS : null;
+
   return (
     <div className={`tuner tuner--${state}`} data-testid="tuner" data-state={state}>
       <div className="tuner__scale" aria-hidden="true">
         <span className="tuner__flat">♭</span>
         <div className="tuner__track">
+          {/* The seismograph fills the area above the needle dot. Its bottom
+              edge meets the dot's highest point so the trail visually starts
+              at the top of the indicator. */}
+          <div className="tuner__roll">
+            <TunerRoll value={rollValue} inTune={inTune} deflection={110} />
+          </div>
           <div className="tuner__ticks">
             {[-50, -25, 0, 25, 50].map((v) => (
               <span key={v} className={v === 0 ? 'tuner__tick tuner__tick--center' : 'tuner__tick'} />
@@ -42,6 +51,9 @@ export function Tuner({ frequency, target, listening, error, onStart }: Props) {
             style={{ transform: `translate(-50%, 0) translateX(${needleOffset}px)` }}
             data-testid="tuner-needle"
           >
+            {/* The pen: vertical line above the dot that "draws" the
+                seismograph trace. Visually, this is the stylus currently
+                writing onto the rolling drum below. */}
             <div className="tuner__needle-line" />
             <div className="tuner__needle-dot">
               {state === 'in-tune' ? (

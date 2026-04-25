@@ -1,3 +1,7 @@
+/* The seismograph fills the tuner__track and flows top→bottom. Its bottom
+   edge lines up with the top of the needle dot, so the trail visually
+   arrives at the highest point of the needle indicator. The fade at the
+   top edge prevents the newly-stamped pixel from looking too abrupt. */
 .tuner-roll {
   position: absolute;
   inset: 0;
@@ -5,8 +9,6 @@
   height: 100%;
   display: block;
   pointer-events: none;
-  /* Soft horizontal fade at the left edge so older samples gently dim as they
-     flow off the seismograph strip, keeping focus on the newer activity. */
-  mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 6%, #000 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 6%, #000 100%);
 }
