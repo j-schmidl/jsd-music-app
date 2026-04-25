@@ -35,6 +35,10 @@ export function Tuner({ frequency, target, listening, error, onStart }: Props) {
       <div className="tuner__scale" aria-hidden="true">
         <span className="tuner__flat">♭</span>
         <div className="tuner__track">
+          {/* Full-length 0-cents baseline — runs the entire track height
+              behind every other layer. The dot opaquely covers it where they
+              overlap, but the line clearly extends above and below the dot. */}
+          <div className="tuner__baseline" />
           {/* The seismograph fills the area above the needle dot. Its bottom
               edge meets the dot's highest point so the trail visually starts
               at the top of the indicator. */}

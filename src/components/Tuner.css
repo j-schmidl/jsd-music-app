@@ -36,6 +36,23 @@
   overflow: visible;
 }
 
+/* The 0-cents baseline. One uninterrupted vertical line that runs the
+   entire height of the track (top of seismograph → through the needle dot →
+   to the bottom of the track). The needle dot is opaque so the line
+   visually disappears behind it, then continues below — same width and
+   color along the whole length. */
+.tuner__baseline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  background: color-mix(in srgb, var(--musik) 80%, transparent);
+  z-index: 0;
+  pointer-events: none;
+}
+
 /* The seismograph strip lives ABOVE the needle dot. Its top sits at the top
    of the track and its bottom edge meets the highest point of the needle dot.
    The dot is 56px tall and centered at translateY(-50%) on the track's

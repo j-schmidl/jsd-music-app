@@ -94,6 +94,12 @@ export function TunerRoll({ value, inTune, deflection = 110 }: Props) {
         // Repaint the whole strip from the buffer. y=0 is the freshest sample
         // (the top of the strip) and y=h-1 is the oldest.
         ctx.clearRect(0, 0, w, h);
+
+        // The 0-cents baseline is rendered as a sibling DOM element
+        // (.tuner__baseline) running the full height of the track, so
+        // the line is visually continuous above and below the needle
+        // dot. The canvas only draws the live trail.
+
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.lineWidth = 2;
