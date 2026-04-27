@@ -1,0 +1,47 @@
+.update-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
+  transform: translateX(-50%);
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--fund-01);
+  color: var(--fund-light);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 14px;
+  max-width: calc(100vw - 24px);
+}
+
+.update-prompt__text {
+  white-space: nowrap;
+}
+
+.update-prompt__action {
+  appearance: none;
+  border: 0;
+  background: var(--musik);
+  color: var(--fund-02);
+  font: inherit;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.update-prompt__dismiss {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 22px;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}

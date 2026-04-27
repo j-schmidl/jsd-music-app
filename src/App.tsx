@@ -7,6 +7,7 @@ import { MicButton } from './components/MicButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Tuner } from './components/Tuner';
 import { TuningSelector } from './components/TuningSelector';
+import { UpdatePrompt } from './components/UpdatePrompt';
 import { WaveBackground } from './components/WaveBackground';
 import { Wordmark } from './components/Wordmark';
 import { usePitchDetection } from './hooks/usePitchDetection';
@@ -110,6 +111,7 @@ export default function App() {
       </main>
 
       <BottomNav active={activeTab} onChange={setActiveTab} />
+      <UpdatePrompt />
     </div>
   );
 }

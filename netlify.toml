@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NPM_FLAGS = "--legacy-peer-deps"
+
+# SPA fallback so deep-links don't 404.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

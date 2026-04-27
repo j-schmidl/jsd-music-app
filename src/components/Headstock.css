@@ -1,31 +1,31 @@
 .headstock {
   position: relative;
   display: grid;
-  grid-template-columns: 56px 1fr 56px;
+  grid-template-columns: 48px 1fr 48px;
   align-items: center;
   justify-items: center;
-  gap: 16px;
-  max-width: 360px;
+  gap: 12px;
+  max-width: 300px;
   margin: 0 auto;
-  padding: 8px 0 24px;
+  padding: 4px 0 16px;
 }
 
 .headstock__column {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 20px;
   align-items: center;
 }
 
 .headstock__svg {
   width: 100%;
-  max-width: 220px;
+  max-width: 168px;
   height: auto;
 }
 
 .string-btn {
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   min-width: 44px;
   min-height: 44px;
   display: inline-flex;
@@ -38,7 +38,7 @@
   color: var(--fg);
   font-family: var(--font-body);
   font-weight: 500;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   transition: border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
   -webkit-tap-highlight-color: transparent;
