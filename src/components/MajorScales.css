@@ -1,0 +1,324 @@
+.major-scales {
+  position: relative;
+  z-index: 3;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px 16px;
+  gap: 12px;
+}
+
+.major-scales__title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.major-scales__sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.major-scales__formula {
+  font-family: var(--font-title);
+  background: var(--surface);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--fg);
+}
+
+/* ---- Mode tabs ----------------------------------------------------------- */
+.major-scales__modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.major-scales__mode {
+  min-height: 44px;
+  padding: 8px 6px;
+  border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent);
+  background: var(--surface);
+  color: var(--fg);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.major-scales__mode--active {
+  background: var(--musik);
+  border-color: var(--musik);
+  color: var(--fund-02);
+  font-weight: 600;
+}
+
+/* ---- Controls (key, difficulty, new round) ------------------------------ */
+.major-scales__controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.major-scales__field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 110px;
+}
+
+.major-scales__field > span {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.2px;
+}
+
+.major-scales__field select {
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.major-scales__primary,
+.major-scales__secondary {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  border: 1px solid var(--musik);
+}
+
+.major-scales__primary {
+  background: var(--musik);
+  color: var(--fund-02);
+}
+
+.major-scales__secondary {
+  background: transparent;
+  color: var(--fg);
+  border-color: color-mix(in srgb, var(--fg) 24%, transparent);
+}
+
+.major-scales__primary:disabled,
+.major-scales__secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- Prompt ------------------------------------------------------------- */
+.major-scales__prompt {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--fg);
+}
+.major-scales__prompt b {
+  color: var(--musik);
+}
+
+/* ---- Slots -------------------------------------------------------------- */
+.major-scales__slots {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.major-scales__slot {
+  min-height: 56px;
+  padding: 0;
+  border-radius: 8px;
+  border: 2px dashed color-mix(in srgb, var(--fg) 18%, transparent);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-title);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.major-scales__slot--given {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--fg) 12%, transparent);
+  background: var(--surface-2);
+  color: var(--muted);
+  cursor: default;
+}
+
+.major-scales__slot--filled {
+  border-style: solid;
+  border-color: var(--musik);
+  color: var(--fg);
+}
+
+.major-scales__slot--active {
+  border-color: var(--musik);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--musik) 25%, transparent);
+}
+
+.major-scales__slot.correct {
+  border-color: var(--tech);
+  color: var(--tech);
+}
+.major-scales__slot.wrong {
+  border-color: #ff5c6c;
+  color: #ff5c6c;
+}
+
+/* ---- Note picker chips -------------------------------------------------- */
+.major-scales__picker {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.major-scales__pick {
+  min-height: 44px;
+  padding: 0 4px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fg) 14%, transparent);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.major-scales__pick:hover:not(:disabled) {
+  border-color: var(--musik);
+}
+.major-scales__pick:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.major-scales__actions {
+  display: flex;
+  gap: 8px;
+}
+.major-scales__actions > * { flex: 1; }
+
+/* ---- Feedback / score --------------------------------------------------- */
+.major-scales__feedback {
+  min-height: 22px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.major-scales__feedback--good { color: var(--tech); }
+.major-scales__feedback--bad { color: #ff5c6c; }
+.major-scales__feedback--info { color: var(--musik); }
+
+.major-scales__score {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+  margin-top: -4px;
+}
+
+/* ---- Piano -------------------------------------------------------------- */
+.major-scales__piano-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.major-scales__piano {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 160px;
+  user-select: none;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+
+.major-scales__key {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8px;
+  transition: background 80ms ease;
+}
+
+.major-scales__key--white {
+  flex: 1;
+  background: #f7f7f2;
+  color: #2a0a45;
+  border-right: 1px solid #1a1a1a;
+}
+.major-scales__key--white:last-of-type { border-right: 0; }
+
+.major-scales__key--white:active:not(:disabled) {
+  background: #ffe9c2;
+}
+
+.major-scales__key--black {
+  position: absolute;
+  top: 0;
+  width: 6.8%;
+  height: 62%;
+  background: #1a1a1a;
+  color: #ddd;
+  border-radius: 0 0 4px 4px;
+  z-index: 2;
+}
+.major-scales__key--black:active:not(:disabled) {
+  background: #3a3a3a;
+}
+
+.major-scales__key-label {
+  font-family: var(--font-title);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.major-scales__key--wrong {
+  background: #ff5c6c !important;
+  color: #fff !important;
+}
+
+.major-scales__piano-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ---- Desktop progressive enhancement ----------------------------------- */
+@media (min-width: 768px) {
+  .major-scales__piano {
+    height: 180px;
+  }
+}

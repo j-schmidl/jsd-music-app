@@ -17,10 +17,13 @@ test.describe('jsd guitar tuner — page shell', () => {
     await expect(page.getByText('Standard')).toBeVisible();
   });
 
-  test('bottom nav shows 5 tabs with Stimmen active', async ({ page }) => {
+  test('bottom nav shows Stimmen and Lernen with Stimmen active', async ({ page }) => {
     await page.goto('/');
-    for (const id of ['songs', 'tools', 'stimmen', 'lernen', 'einstellungen']) {
+    for (const id of ['stimmen', 'lernen']) {
       await expect(page.getByTestId(`nav-${id}`)).toBeVisible();
+    }
+    for (const id of ['songs', 'tools', 'einstellungen']) {
+      await expect(page.getByTestId(`nav-${id}`)).toHaveCount(0);
     }
     await expect(page.getByTestId('nav-stimmen')).toHaveAttribute('aria-current', 'page');
   });

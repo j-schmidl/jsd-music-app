@@ -3,6 +3,7 @@ import './App.css';
 import { AutoSwitch } from './components/AutoSwitch';
 import { BottomNav } from './components/BottomNav';
 import { Headstock } from './components/Headstock';
+import { MajorScales } from './components/MajorScales';
 import { MicButton } from './components/MicButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Tuner } from './components/Tuner';
@@ -20,6 +21,7 @@ export default function App() {
   const [tuning, setTuning] = useState<Tuning>(TUNINGS[0]);
   const [pinned, setPinned] = useState<GuitarString | null>(null);
   const [activeTab, setActiveTab] = useState('stimmen');
+  const [lernenScreen, setLernenScreen] = useState<'menu' | 'major-scales'>('menu');
   const pitch = usePitchDetection();
   const demoFrequency = useDemoFrequency();
 
@@ -67,6 +69,14 @@ export default function App() {
     if (mode === 'manual') setPinned(s);
   };
 
+  const handleTabChange = (id: string) => {
+    setActiveTab(id);
+    if (id === 'lernen') setLernenScreen('menu');
+  };
+
+  const isTuner = activeTab === 'stimmen';
+  const isLernen = activeTab === 'lernen';
+
   return (
     <div className="app" data-theme-current={theme}>
       <WaveBackground />
@@ -77,42 +87,92 @@ export default function App() {
           <Wordmark />
         </div>
         <div className="app__header-actions">
-          <AutoSwitch mode={mode} onChange={setMode} />
-          <MicButton
-            status={pitch.status}
-            devices={pitch.devices}
-            activeDeviceId={pitch.activeDeviceId}
-            onRetrigger={() => void pitch.start(pitch.activeDeviceId ?? undefined)}
-            onSelect={(id) => void pitch.start(id)}
-          />
+          {isTuner && (
+            <>
+              <AutoSwitch mode={mode} onChange={setMode} />
+              <MicButton
+                status={pitch.status}
+                devices={pitch.devices}
+                activeDeviceId={pitch.activeDeviceId}
+                onRetrigger={() => void pitch.start(pitch.activeDeviceId ?? undefined)}
+                onSelect={(id) => void pitch.start(id)}
+              />
+            </>
+          )}
         </div>
       </header>
 
-      <div className="app__subtitle">
-        <span className="app__subtitle-main">Gitarre 6-saitig</span>
-        <TuningSelector active={tuning} onChange={setTuning} />
-      </div>
+      {isTuner && (
+        <div className="app__subtitle">
+          <span className="app__subtitle-main">Gitarre 6-saitig</span>
+          <TuningSelector active={tuning} onChange={setTuning} />
+        </div>
+      )}
 
       <main className="app__main">
-        <Tuner
-          frequency={effectiveFrequency}
-          target={target}
-          listening={pitch.status === 'listening' || demoFrequency !== null}
-          error={pitch.error}
-          onStart={() => void pitch.start()}
-        />
-        <Headstock
-          tuning={tuning}
-          mode={mode}
-          target={target}
-          detected={detected}
-          onSelect={handleSelectString}
-        />
+        {isTuner && (
+          <>
+            <Tuner
+              frequency={effectiveFrequency}
+              target={target}
+              listening={pitch.status === 'listening' || demoFrequency !== null}
+              error={pitch.error}
+              onStart={() => void pitch.start()}
+            />
+            <Headstock
+              tuning={tuning}
+              mode={mode}
+              target={target}
+              detected={detected}
+              onSelect={handleSelectString}
+            />
+          </>
+        )}
+        {isLernen && lernenScreen === 'menu' && (
+          <LernenMenu onOpenMajorScales={() => setLernenScreen('major-scales')} />
+        )}
+        {isLernen && lernenScreen === 'major-scales' && (
+          <>
+            <button
+              type="button"
+              className="app__back"
+              data-testid="lernen-back"
+              onClick={() => setLernenScreen('menu')}
+              aria-label="Zurück zum Menü"
+            >
+              ‹ Lernen
+            </button>
+            <MajorScales />
+          </>
+        )}
       </main>
 
-      <BottomNav active={activeTab} onChange={setActiveTab} />
+      <BottomNav active={activeTab} onChange={handleTabChange} />
       <UpdatePrompt />
     </div>
+  );
+}
+
+type LernenMenuProps = { onOpenMajorScales: () => void };
+function LernenMenu({ onOpenMajorScales }: LernenMenuProps) {
+  return (
+    <section className="lernen-menu" data-testid="lernen-menu">
+      <h2 className="lernen-menu__title">Lernen</h2>
+      <p className="lernen-menu__sub">Wähle ein Spiel.</p>
+      <ul className="lernen-menu__list">
+        <li>
+          <button
+            type="button"
+            className="lernen-menu__tile"
+            data-testid="lernen-tile-major-scales"
+            onClick={onOpenMajorScales}
+          >
+            <span className="lernen-menu__tile-title">Dur-Tonleitern</span>
+            <span className="lernen-menu__tile-sub">Major Scales üben — 3 Modi</span>
+          </button>
+        </li>
+      </ul>
+    </section>
   );
 }
 

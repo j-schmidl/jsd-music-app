@@ -139,3 +139,88 @@ button {
     min-height: 100dvh;
   }
 }
+
+/* ============================================================
+   Lernen menu (game picker)
+   ============================================================ */
+.lernen-menu {
+  position: relative;
+  z-index: 3;
+  padding: 8px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lernen-menu__title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.lernen-menu__sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.lernen-menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lernen-menu__tile {
+  width: 100%;
+  min-height: 64px;
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.lernen-menu__tile:hover {
+  border-color: var(--musik);
+}
+
+.lernen-menu__tile-title {
+  font-family: var(--font-title);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--musik);
+}
+
+.lernen-menu__tile-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ============================================================
+   Back button
+   ============================================================ */
+.app__back {
+  align-self: flex-start;
+  margin: 4px 16px 0;
+  padding: 6px 10px;
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  -webkit-tap-highlight-color: transparent;
+}
+.app__back:hover { color: var(--fg); }
