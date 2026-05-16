@@ -126,6 +126,86 @@ test.describe('Major Scales — Build mode', () => {
     await expect(page.getByTestId('score')).toContainText('1 / 1');
   });
 
+  test('correcting a note re-places it in the same slot at the same octave', async ({ page }) => {
+    await openMajorScales(page);
+    // G major wraps (G A B | C D E F#), so slots 3..6 sit an octave higher
+    // than slots 0..2 — a good case to catch octave drift on correction.
+    await selectKey(page, 'G');
+
+    // Record every frequency that gets played.
+    await page.evaluate(() => {
+      const proto = (window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)
+        .prototype;
+      const original = proto.createOscillator;
+      (window as unknown as { __freqs: number[] }).__freqs = [];
+      proto.createOscillator = function patched() {
+        const osc = original.call(this);
+        const setFreq = Object.getOwnPropertyDescriptor(
+          Object.getPrototypeOf(osc.frequency),
+          'value',
+        );
+        Object.defineProperty(osc.frequency, 'value', {
+          set(v: number) {
+            (window as unknown as { __freqs: number[] }).__freqs.push(v);
+            setFreq?.set?.call(this, v);
+          },
+          get() {
+            return setFreq?.get?.call(this);
+          },
+        });
+        return osc;
+      };
+    });
+
+    // Fill the whole scale: G A B C D E F#.
+    for (const n of ['G', 'A', 'B', 'C', 'D', 'E', 'F#']) {
+      await page.getByTestId(`pick-${n}`).click();
+    }
+
+    // Frequency of slot 0 (G) when first placed.
+    const placedFreqs = await page.evaluate(
+      () => (window as unknown as { __freqs: number[] }).__freqs.slice(),
+    );
+    const firstG = placedFreqs[0];
+
+    // Now correct slot 0: select it explicitly, then place G again.
+    await page.evaluate(() => {
+      (window as unknown as { __freqs: number[] }).__freqs = [];
+    });
+    await page.getByTestId('slot-0').click(); // re-selecting plays the old value
+    await page.getByTestId('pick-G').click(); // re-placing plays the new value
+
+    const correctionFreqs = await page.evaluate(
+      () => (window as unknown as { __freqs: number[] }).__freqs.slice(),
+    );
+    // Every tone played during the correction must match slot 0's original
+    // octave — no jump to the next octave.
+    for (const f of correctionFreqs) {
+      expect(Math.abs(f - firstG)).toBeLessThan(1);
+    }
+
+    // The correction must land in slot 0, not overwrite a later slot.
+    await expect(page.getByTestId('slot-0')).toContainText('G');
+    await expect(page.getByTestId('slot-6')).toContainText('F#');
+  });
+
+  test('a stray picker tap with no slot selected does not overwrite a filled slot', async ({ page }) => {
+    await openMajorScales(page);
+    await selectKey(page, 'G');
+    // Fill the whole scale — afterwards no slot is "armed".
+    for (const n of ['G', 'A', 'B', 'C', 'D', 'E', 'F#']) {
+      await page.getByTestId(`pick-${n}`).click();
+    }
+    // Tapping a chip without first selecting a slot must not change anything.
+    await page.getByTestId('pick-C').click();
+    const slots: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      slots.push((await page.getByTestId(`slot-${i}`).innerText()).trim());
+    }
+    expect(slots).toEqual(['G', 'A', 'B', 'C', 'D', 'E', 'F#']);
+  });
+
   test('wrong build flags the wrong slots and lets the user retry', async ({ page }) => {
     await openMajorScales(page);
     await selectKey(page, 'C');
@@ -152,20 +232,29 @@ test.describe('Major Scales — Build mode', () => {
     await expect(page.getByTestId('score')).toContainText('1 / 1');
   });
 
-  test('rejects enharmonic-but-misspelled answers (C# major needs E# not F)', async ({ page }) => {
+  test('enharmonic-but-misspelled answers get a yellow warning, not a red error', async ({ page }) => {
     await openMajorScales(page);
     await selectKey(page, 'C#');
     // C# major canonical = C# D# E# F# G# A# B#. Place enharmonic but
-    // wrongly-spelled equivalents at slots 2 (F instead of E#) and 5 (Gb
-    // instead of F#) — same pitches, but they reuse letters and break the
-    // "every letter exactly once" rule for major scales.
-    for (const n of ['C#', 'D#', 'F', 'F#', 'G#', 'Gb', 'B#']) {
+    // wrongly-spelled equivalents at slot 2 (F instead of E#) and slot 5
+    // (Bb instead of A#) — same pitches, different spelling.
+    for (const n of ['C#', 'D#', 'F', 'F#', 'G#', 'Bb', 'B#']) {
       await page.getByTestId(`pick-${n}`).click();
     }
     await page.getByTestId('check').click();
-    await expect(page.getByTestId('feedback')).toContainText('Fehler');
-    await expect(page.getByTestId('slot-2')).toHaveClass(/wrong/);
-    await expect(page.getByTestId('slot-5')).toHaveClass(/wrong/);
+
+    // Right pitches → the round still counts, but it's flagged amber.
+    await expect(page.getByTestId('feedback')).toContainText('Fast richtig');
+    await expect(page.getByTestId('feedback')).not.toContainText('Fehler');
+    // The feedback names what the user wrote and the correct spelling.
+    await expect(page.getByTestId('feedback')).toContainText('F → E#');
+    await expect(page.getByTestId('feedback')).toContainText('Bb → A#');
+    // The misspelled slots are yellow (warn), not red (wrong).
+    await expect(page.getByTestId('slot-2')).toHaveClass(/warn/);
+    await expect(page.getByTestId('slot-2')).not.toHaveClass(/wrong/);
+    await expect(page.getByTestId('slot-5')).toHaveClass(/warn/);
+    // The round is solved — score increments.
+    await expect(page.getByTestId('score')).toContainText('1 / 1');
   });
 
   test('Auflösen finalizes a wrong round as a missed attempt', async ({ page }) => {
@@ -256,10 +345,10 @@ test.describe('Major Scales — Piano mode', () => {
     await openMajorScales(page);
 
     await selectDifficulty(page, 'easy');
-    await expect(page.locator('.major-scales__key-label').first()).toBeVisible();
+    await expect(page.locator('.scale-game__key-label').first()).toBeVisible();
 
     await selectDifficulty(page, 'hard');
-    await expect(page.locator('.major-scales__key-label')).toHaveCount(0);
+    await expect(page.locator('.scale-game__key-label')).toHaveCount(0);
   });
 });
 
@@ -280,7 +369,7 @@ test.describe('Major Scales — settings panel', () => {
     await page.getByTestId('key-select').selectOption('D');
     await page.getByTestId('difficulty-select').selectOption('hard');
 
-    await expect(page.getByTestId('settings-summary')).toContainText('Tonart: D dur');
+    await expect(page.getByTestId('settings-summary')).toContainText('Tonart: D');
     await expect(page.getByTestId('settings-summary')).toContainText('Schwierigkeit: Schwer');
   });
 
@@ -294,8 +383,29 @@ test.describe('Major Scales — settings panel', () => {
     await page.getByTestId('nav-lernen').click();
     await page.getByTestId('lernen-tile-major-scales').click();
 
-    await expect(page.getByTestId('settings-summary')).toContainText('Tonart: A dur');
+    await expect(page.getByTestId('settings-summary')).toContainText('Tonart: A');
     await expect(page.getByTestId('settings-summary')).toContainText('Schwierigkeit: Leicht');
+  });
+});
+
+test.describe('Major Scales — theory info panel', () => {
+  test('explains the major-scale build rule, collapsed by default', async ({ page }) => {
+    await openMajorScales(page);
+    // The toggle is offered, panel collapsed.
+    await expect(page.getByTestId('info-toggle')).toBeVisible();
+    await expect(page.getByTestId('info-panel')).toHaveCount(0);
+
+    await page.getByTestId('info-toggle').click();
+    const info = page.getByTestId('info-panel');
+    await expect(info).toBeVisible();
+    await expect(info).toContainText('Schrittfolge');
+    await expect(info).toContainText('Quintenzirkel');
+  });
+
+  test('the info panel stays available in the easy difficulty', async ({ page }) => {
+    await openMajorScales(page);
+    await selectDifficulty(page, 'easy');
+    await expect(page.getByTestId('info-toggle')).toBeVisible();
   });
 });
 

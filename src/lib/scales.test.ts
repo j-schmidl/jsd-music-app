@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   KEYS,
+  MINOR_KEYS,
   ascendingOctave,
   buildMajorScale,
+  buildMinorScale,
   enharmonicEqual,
   noteSemi,
   pickHiddenIndices,
@@ -38,6 +40,42 @@ describe('buildMajorScale', () => {
       expect(notes).toHaveLength(7);
       const letters = notes.map((n) => n[0]);
       expect(new Set(letters).size).toBe(7);
+    }
+  });
+});
+
+describe('buildMinorScale', () => {
+  it('builds A natural minor with no accidentals', () => {
+    expect(buildMinorScale('A', 'natural')).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G']);
+  });
+
+  it('builds A harmonic minor with a raised 7th (G#)', () => {
+    expect(buildMinorScale('A', 'harmonic')).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G#']);
+  });
+
+  it('builds A melodic minor (ascending) with raised 6th and 7th', () => {
+    expect(buildMinorScale('A', 'melodic')).toEqual(['A', 'B', 'C', 'D', 'E', 'F#', 'G#']);
+  });
+
+  it('builds E natural minor (one sharp)', () => {
+    expect(buildMinorScale('E', 'natural')).toEqual(['E', 'F#', 'G', 'A', 'B', 'C', 'D']);
+  });
+
+  it('builds D natural minor (one flat)', () => {
+    expect(buildMinorScale('D', 'natural')).toEqual(['D', 'E', 'F', 'G', 'A', 'Bb', 'C']);
+  });
+
+  it('defaults to the natural minor when no variant is given', () => {
+    expect(buildMinorScale('A')).toEqual(buildMinorScale('A', 'natural'));
+  });
+
+  it('produces 7 notes with no repeated letters for every minor key and variant', () => {
+    for (const k of MINOR_KEYS) {
+      for (const v of ['natural', 'harmonic', 'melodic'] as const) {
+        const notes = buildMinorScale(k, v);
+        expect(notes).toHaveLength(7);
+        expect(new Set(notes.map((n) => n[0])).size).toBe(7);
+      }
     }
   });
 });

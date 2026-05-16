@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { STRINGS, TUNINGS, centsOff, getTuningHint, isInTune, nearestString } from './tuning';
+import {
+  STRINGS,
+  TUNINGS,
+  centsOff,
+  getTuningHint,
+  isInTune,
+  nearestNote,
+  nearestString,
+} from './tuning';
 
 describe('STRINGS', () => {
   it('contains the six standard guitar strings in pitch order', () => {
@@ -113,5 +121,32 @@ describe('nearestString with custom tunings', () => {
 
   it('falls back to standard tuning when no strings argument is given', () => {
     expect(nearestString(82).id).toBe('E2');
+  });
+});
+
+describe('nearestNote (chromatic)', () => {
+  it('maps A4 = 440 Hz to A4', () => {
+    const n = nearestNote(440);
+    expect(n.name).toBe('A');
+    expect(n.octave).toBe(4);
+  });
+
+  it('maps middle C ≈ 261.63 Hz to C4', () => {
+    const n = nearestNote(261.63);
+    expect(n.name).toBe('C');
+    expect(n.octave).toBe(4);
+  });
+
+  it('snaps a slightly sharp A to A4 and reports positive cents off', () => {
+    const n = nearestNote(444);
+    expect(n.id).toBe('A4');
+    // 444 Hz is sharp of 440 Hz → played pitch above target.
+    expect(centsOff(444, n.freq)).toBeGreaterThan(0);
+  });
+
+  it('detects a black-key note (F#5 ≈ 739.99 Hz)', () => {
+    const n = nearestNote(739.99);
+    expect(n.name).toBe('F#');
+    expect(n.octave).toBe(5);
   });
 });

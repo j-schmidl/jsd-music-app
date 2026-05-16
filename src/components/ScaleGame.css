@@ -1,4 +1,4 @@
-.major-scales {
+.scale-game {
   position: relative;
   z-index: 3;
   flex: 1;
@@ -8,7 +8,7 @@
   gap: 12px;
 }
 
-.major-scales__title {
+.scale-game__title {
   margin: 0;
   font-family: var(--font-title);
   font-size: 20px;
@@ -16,13 +16,13 @@
   color: var(--fg);
 }
 
-.major-scales__sub {
+.scale-game__sub {
   margin: 0;
   color: var(--muted);
   font-size: 12px;
 }
 
-.major-scales__formula {
+.scale-game__formula {
   font-family: var(--font-title);
   background: var(--surface);
   padding: 2px 6px;
@@ -31,14 +31,14 @@
 }
 
 /* ---- Controls (key, difficulty, new round) ------------------------------ */
-.major-scales__controls {
+.scale-game__controls {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   align-items: stretch;
 }
 
-.major-scales__settings-toggle {
+.scale-game__settings-toggle {
   flex: 1 1 auto;
   min-height: 44px;
   display: flex;
@@ -55,14 +55,14 @@
   text-align: left;
 }
 
-.major-scales__settings-label {
+.scale-game__settings-label {
   font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.2px;
   text-transform: uppercase;
 }
 
-.major-scales__settings-summary {
+.scale-game__settings-summary {
   flex: 1;
   font-size: 13px;
   color: var(--fg);
@@ -71,17 +71,17 @@
   text-overflow: ellipsis;
 }
 
-.major-scales__settings-chevron {
+.scale-game__settings-chevron {
   color: var(--muted);
   font-size: 14px;
   flex: 0 0 auto;
 }
 
-.major-scales__new-round {
+.scale-game__new-round {
   flex: 0 0 auto;
 }
 
-.major-scales__settings {
+.scale-game__settings {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -91,7 +91,63 @@
   border: 1px solid color-mix(in srgb, var(--fg) 8%, transparent);
 }
 
-.major-scales__field {
+/* ---- Info panel ("Was bedeuten die Tonleiter-Arten?") ------------------- */
+.scale-game__info-toggle {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--musik) 40%, transparent);
+  background: color-mix(in srgb, var(--musik) 10%, var(--surface));
+  color: var(--musik);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+}
+
+.scale-game__info-chevron {
+  font-size: 12px;
+  flex: 0 0 auto;
+}
+
+.scale-game__info {
+  margin: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.scale-game__info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scale-game__info-term {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--fg);
+}
+
+.scale-game__info-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.scale-game__field {
   display: inline-flex;
   flex-direction: column;
   gap: 4px;
@@ -99,13 +155,13 @@
   min-width: 110px;
 }
 
-.major-scales__field > span {
+.scale-game__field > span {
   font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.2px;
 }
 
-.major-scales__field select {
+.scale-game__field select {
   min-height: 44px;
   padding: 8px 10px;
   border-radius: 8px;
@@ -116,8 +172,8 @@
   font-size: 14px;
 }
 
-.major-scales__primary,
-.major-scales__secondary {
+.scale-game__primary,
+.scale-game__secondary {
   min-height: 44px;
   padding: 0 14px;
   border-radius: 8px;
@@ -129,49 +185,49 @@
   border: 1px solid var(--musik);
 }
 
-.major-scales__primary {
+.scale-game__primary {
   background: var(--musik);
   color: var(--fund-02);
 }
 
-.major-scales__secondary {
+.scale-game__secondary {
   background: transparent;
   color: var(--fg);
   border-color: color-mix(in srgb, var(--fg) 24%, transparent);
 }
 
-.major-scales__primary:disabled,
-.major-scales__secondary:disabled {
+.scale-game__primary:disabled,
+.scale-game__secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* ---- Prompt ------------------------------------------------------------- */
-.major-scales__prompt {
+.scale-game__prompt {
   margin: 4px 0 0;
   font-size: 14px;
   color: var(--fg);
 }
-.major-scales__prompt b {
+.scale-game__prompt b {
   color: var(--musik);
 }
 
 /* ---- Slots -------------------------------------------------------------- */
-.major-scales__slots {
+.scale-game__slots {
   display: flex;
   gap: 3px;
 }
 
-.major-scales__slot {
+.scale-game__slot {
   flex: 1 1 0;
 }
 
-.major-scales__slot--octave {
+.scale-game__slot--octave {
   margin-left: 6px;
   opacity: 0.85;
 }
 
-.major-scales__slot {
+.scale-game__slot {
   min-height: 56px;
   min-width: 0; /* let slots shrink so 8 fit on a phone */
   padding: 0;
@@ -190,7 +246,7 @@
   transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
 }
 
-.major-scales__slot--given {
+.scale-game__slot--given {
   border-style: solid;
   border-color: color-mix(in srgb, var(--fg) 12%, transparent);
   background: var(--surface-2);
@@ -198,34 +254,40 @@
   cursor: default;
 }
 
-.major-scales__slot--filled {
+.scale-game__slot--filled {
   border-style: solid;
   border-color: var(--musik);
   color: var(--fg);
 }
 
-.major-scales__slot--active {
+.scale-game__slot--active {
   border-color: var(--musik);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--musik) 25%, transparent);
 }
 
-.major-scales__slot.correct {
+.scale-game__slot.correct {
   border-color: var(--tech);
   color: var(--tech);
 }
-.major-scales__slot.wrong {
+/* Right pitch, wrong spelling — accepted but flagged amber so the user
+   notices without it reading as a mistake. */
+.scale-game__slot.warn {
+  border-color: #f5b942;
+  color: #f5b942;
+}
+.scale-game__slot.wrong {
   border-color: #ff5c6c;
   color: #ff5c6c;
 }
 
 /* ---- Note picker chips -------------------------------------------------- */
-.major-scales__picker {
+.scale-game__picker {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
 }
 
-.major-scales__pick {
+.scale-game__pick {
   min-height: 44px;
   padding: 0 4px;
   border-radius: 8px;
@@ -240,31 +302,32 @@
   transition: border-color 120ms ease, background 120ms ease;
 }
 
-.major-scales__pick:hover:not(:disabled) {
+.scale-game__pick:hover:not(:disabled) {
   border-color: var(--musik);
 }
-.major-scales__pick:disabled {
+.scale-game__pick:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.major-scales__actions {
+.scale-game__actions {
   display: flex;
   gap: 8px;
 }
-.major-scales__actions > * { flex: 1; }
+.scale-game__actions > * { flex: 1; }
 
 /* ---- Feedback / score --------------------------------------------------- */
-.major-scales__feedback {
+.scale-game__feedback {
   min-height: 22px;
   font-size: 13px;
   color: var(--muted);
 }
-.major-scales__feedback--good { color: var(--tech); }
-.major-scales__feedback--bad { color: #ff5c6c; }
-.major-scales__feedback--info { color: var(--musik); }
+.scale-game__feedback--good { color: var(--tech); }
+.scale-game__feedback--bad { color: #ff5c6c; }
+.scale-game__feedback--warn { color: #f5b942; }
+.scale-game__feedback--info { color: var(--musik); }
 
-.major-scales__score {
+.scale-game__score {
   font-size: 12px;
   color: var(--muted);
   text-align: right;
@@ -272,13 +335,13 @@
 }
 
 /* ---- Piano -------------------------------------------------------------- */
-.major-scales__piano-wrap {
+.scale-game__piano-wrap {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.major-scales__piano {
+.scale-game__piano {
   position: relative;
   display: flex;
   width: 100%;
@@ -289,7 +352,7 @@
   background: #000;
 }
 
-.major-scales__key {
+.scale-game__key {
   margin: 0;
   border: 0;
   padding: 0;
@@ -304,19 +367,19 @@
   transition: background 80ms ease;
 }
 
-.major-scales__key--white {
+.scale-game__key--white {
   flex: 1;
   background: #f7f7f2;
   color: #2a0a45;
   border-right: 1px solid #1a1a1a;
 }
-.major-scales__key--white:last-of-type { border-right: 0; }
+.scale-game__key--white:last-of-type { border-right: 0; }
 
-.major-scales__key--white:active:not(:disabled) {
+.scale-game__key--white:active:not(:disabled) {
   background: #ffe9c2;
 }
 
-.major-scales__key--black {
+.scale-game__key--black {
   position: absolute;
   top: 0;
   width: 6.8%;
@@ -326,23 +389,23 @@
   border-radius: 0 0 4px 4px;
   z-index: 2;
 }
-.major-scales__key--black:active:not(:disabled) {
+.scale-game__key--black:active:not(:disabled) {
   background: #3a3a3a;
 }
 
-.major-scales__key-label {
+.scale-game__key-label {
   font-family: var(--font-title);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.2px;
 }
 
-.major-scales__key--wrong {
+.scale-game__key--wrong {
   background: #ff5c6c !important;
   color: #fff !important;
 }
 
-.major-scales__piano-hint {
+.scale-game__piano-hint {
   margin: 0;
   font-size: 11px;
   color: var(--muted);
@@ -350,7 +413,7 @@
 }
 
 /* ---- Next-scale countdown button --------------------------------------- */
-.major-scales__next {
+.scale-game__next {
   position: relative;
   align-self: center;
   min-width: 220px;
@@ -366,13 +429,13 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.major-scales__next-ring {
+.scale-game__next-ring {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-.major-scales__next-ring svg {
+.scale-game__next-ring svg {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -380,7 +443,7 @@
   overflow: visible;
 }
 
-.major-scales__next-ring-track {
+.scale-game__next-ring-track {
   fill: var(--musik);
   stroke: color-mix(in srgb, var(--fund-02) 30%, transparent);
   stroke-width: 2;
@@ -390,7 +453,7 @@
 /* The progress rect drains its dasharray over the countdown's total
    duration. The pathLength of a rounded 96×36 rect is ~256; we set a
    pathLength attribute so the dasharray maths is simple. */
-.major-scales__next-ring-progress {
+.scale-game__next-ring-progress {
   fill: none;
   stroke: var(--tech);
   stroke-width: 3;
@@ -398,24 +461,24 @@
   vector-effect: non-scaling-stroke;
   stroke-dasharray: 100;
   stroke-dashoffset: 0;
-  animation-name: major-scales-drain;
+  animation-name: scale-game-drain;
   animation-timing-function: linear;
   animation-fill-mode: forwards;
 }
 
-@keyframes major-scales-drain {
+@keyframes scale-game-drain {
   from { stroke-dashoffset: 0; }
   to   { stroke-dashoffset: 100; }
 }
 
-.major-scales__next-label {
+.scale-game__next-label {
   position: relative;
   z-index: 1;
 }
 
 /* ---- Desktop progressive enhancement ----------------------------------- */
 @media (min-width: 768px) {
-  .major-scales__piano {
+  .scale-game__piano {
     height: 180px;
   }
 }

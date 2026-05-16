@@ -9,11 +9,12 @@ type Props = {
   listening: boolean;
   error: string | null;
   onStart: () => void;
+  prompt: string;
 };
 
 const MAX_DISPLAY_CENTS = 50;
 
-export function Tuner({ frequency, target, listening, error, onStart }: Props) {
+export function Tuner({ frequency, target, listening, error, onStart, prompt }: Props) {
   const hasSignal = frequency !== null && target !== null;
   const cents = hasSignal ? centsOff(frequency!, target!.freq) : 0;
   const clamped = Math.max(-MAX_DISPLAY_CENTS, Math.min(MAX_DISPLAY_CENTS, cents));
@@ -73,44 +74,51 @@ export function Tuner({ frequency, target, listening, error, onStart }: Props) {
         <span className="tuner__sharp">♯</span>
       </div>
 
-      {state === 'idle' && (
-        <button type="button" className="tuner__start" onClick={onStart} data-testid="tuner-start">
-          Mikrofon aktivieren
-        </button>
-      )}
+      {/* Fixed-height region so swapping between idle / listening / detected
+          / in-tune / error never reflows the page. The hint slot always
+          occupies its line; only its visibility changes. */}
+      <div className="tuner__bottom">
+        {state === 'idle' && (
+          <button
+            type="button"
+            className="tuner__start"
+            onClick={onStart}
+            data-testid="tuner-start"
+          >
+            Mikrofon aktivieren
+          </button>
+        )}
 
-      {state === 'listening' && (
-        <p className="tuner__prompt" data-testid="tuner-prompt">
-          Spiele eine Saite — sie wird automatisch erkannt
-        </p>
-      )}
+        {state === 'listening' && (
+          <p className="tuner__prompt" data-testid="tuner-prompt">
+            {prompt}
+          </p>
+        )}
 
-      {state === 'detected' && target && (
-        <div className="tuner__status">
-          <span className="tuner__hint" data-testid="tuner-hint">
-            {hint === 'tiefer' ? 'Tiefer stimmen' : 'Höher stimmen'}
-          </span>
-          <span className="tuner__note" data-testid="tuner-note">
-            {target.name}
-            <sup>{target.octave}</sup>
-          </span>
-        </div>
-      )}
+        {(state === 'detected' || state === 'in-tune') && target && (
+          <div className={`tuner__status${state === 'in-tune' ? ' tuner__status--ok' : ''}`}>
+            <span
+              className="tuner__hint"
+              data-testid="tuner-hint"
+              // Reserve the line even when in tune so the note below it does
+              // not jump as the hint appears and disappears.
+              style={{ visibility: state === 'detected' ? 'visible' : 'hidden' }}
+            >
+              {hint === 'tiefer' ? 'Tiefer stimmen' : 'Höher stimmen'}
+            </span>
+            <span className="tuner__note" data-testid="tuner-note">
+              {target.name}
+              <sup>{target.octave}</sup>
+            </span>
+          </div>
+        )}
 
-      {state === 'in-tune' && target && (
-        <div className="tuner__status tuner__status--ok">
-          <span className="tuner__note" data-testid="tuner-note">
-            {target.name}
-            <sup>{target.octave}</sup>
-          </span>
-        </div>
-      )}
-
-      {state === 'error' && (
-        <p className="tuner__error" data-testid="tuner-error">
-          {error ?? 'Mikrofon nicht verfügbar'}
-        </p>
-      )}
+        {state === 'error' && (
+          <p className="tuner__error" data-testid="tuner-error">
+            {error ?? 'Mikrofon nicht verfügbar'}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

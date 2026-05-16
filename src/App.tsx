@@ -5,6 +5,7 @@ import { BottomNav } from './components/BottomNav';
 import { Headstock } from './components/Headstock';
 import { MajorScales } from './components/MajorScales';
 import { MicButton } from './components/MicButton';
+import { MinorScales } from './components/MinorScales';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Tuner } from './components/Tuner';
 import { TuningSelector } from './components/TuningSelector';
@@ -13,26 +14,36 @@ import { WaveBackground } from './components/WaveBackground';
 import { Wordmark } from './components/Wordmark';
 import { usePitchDetection } from './hooks/usePitchDetection';
 import { useTheme } from './hooks/useTheme';
-import { TUNINGS, nearestString, type GuitarString, type Tuning } from './lib/tuning';
+import { TUNINGS, nearestNote, nearestString, type GuitarString, type Tuning } from './lib/tuning';
 
 export default function App() {
   const { theme, toggle } = useTheme();
   const [mode, setMode] = useState<'auto' | 'manual'>('auto');
+  // 'guitar' = string-based tuner with a headstock; 'chromatic' = free
+  // 12-tone detection with no preselected string and no guitar graphic.
+  const [tunerMode, setTunerMode] = useState<'guitar' | 'chromatic'>('guitar');
   const [tuning, setTuning] = useState<Tuning>(TUNINGS[0]);
   const [pinned, setPinned] = useState<GuitarString | null>(null);
   const [activeTab, setActiveTab] = useState('stimmen');
-  const [lernenScreen, setLernenScreen] = useState<'menu' | 'major-scales'>('menu');
+  const [lernenScreen, setLernenScreen] = useState<'menu' | 'major-scales' | 'minor-scales'>(
+    'menu',
+  );
   const pitch = usePitchDetection();
   const demoFrequency = useDemoFrequency();
 
   const effectiveFrequency = demoFrequency ?? pitch.frequency;
+  const isChromatic = tunerMode === 'chromatic';
 
-  const detected = useMemo<GuitarString | null>(
-    () => (effectiveFrequency !== null ? nearestString(effectiveFrequency, tuning.strings) : null),
-    [effectiveFrequency, tuning],
-  );
+  const detected = useMemo<GuitarString | null>(() => {
+    if (effectiveFrequency === null) return null;
+    return isChromatic
+      ? nearestNote(effectiveFrequency)
+      : nearestString(effectiveFrequency, tuning.strings);
+  }, [effectiveFrequency, tuning, isChromatic]);
 
-  const target = mode === 'auto' ? detected : pinned;
+  // Chromatic mode always tracks whatever is detected — there is no manual
+  // string to pin.
+  const target = isChromatic ? detected : mode === 'auto' ? detected : pinned;
 
   useEffect(() => {
     // When flipping auto → manual, seed pinned from the last detection so the UI stays anchored.
@@ -89,7 +100,9 @@ export default function App() {
         <div className="app__header-actions">
           {isTuner && (
             <>
-              <AutoSwitch mode={mode} onChange={setMode} />
+              {/* Auto/manual only applies to the guitar tuner — chromatic
+                  mode always auto-detects. */}
+              {!isChromatic && <AutoSwitch mode={mode} onChange={setMode} />}
               <MicButton
                 status={pitch.status}
                 devices={pitch.devices}
@@ -104,8 +117,29 @@ export default function App() {
 
       {isTuner && (
         <div className="app__subtitle">
-          <span className="app__subtitle-main">Gitarre 6-saitig</span>
-          <TuningSelector active={tuning} onChange={setTuning} />
+          <div className="app__tuner-mode" role="tablist" aria-label="Tuner-Modus">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!isChromatic}
+              data-testid="tuner-mode-guitar"
+              className={`app__tuner-mode-btn${!isChromatic ? ' app__tuner-mode-btn--active' : ''}`}
+              onClick={() => setTunerMode('guitar')}
+            >
+              Gitarre
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isChromatic}
+              data-testid="tuner-mode-chromatic"
+              className={`app__tuner-mode-btn${isChromatic ? ' app__tuner-mode-btn--active' : ''}`}
+              onClick={() => setTunerMode('chromatic')}
+            >
+              Chromatisch
+            </button>
+          </div>
+          {!isChromatic && <TuningSelector active={tuning} onChange={setTuning} />}
         </div>
       )}
 
@@ -118,20 +152,30 @@ export default function App() {
               listening={pitch.status === 'listening' || demoFrequency !== null}
               error={pitch.error}
               onStart={() => void pitch.start()}
+              prompt={
+                isChromatic
+                  ? 'Spiele einen Ton — er wird erkannt'
+                  : 'Spiele eine Saite — sie wird automatisch erkannt'
+              }
             />
-            <Headstock
-              tuning={tuning}
-              mode={mode}
-              target={target}
-              detected={detected}
-              onSelect={handleSelectString}
-            />
+            {!isChromatic && (
+              <Headstock
+                tuning={tuning}
+                mode={mode}
+                target={target}
+                detected={detected}
+                onSelect={handleSelectString}
+              />
+            )}
           </>
         )}
         {isLernen && lernenScreen === 'menu' && (
-          <LernenMenu onOpenMajorScales={() => setLernenScreen('major-scales')} />
+          <LernenMenu
+            onOpenMajorScales={() => setLernenScreen('major-scales')}
+            onOpenMinorScales={() => setLernenScreen('minor-scales')}
+          />
         )}
-        {isLernen && lernenScreen === 'major-scales' && (
+        {isLernen && (lernenScreen === 'major-scales' || lernenScreen === 'minor-scales') && (
           <>
             <button
               type="button"
@@ -142,7 +186,7 @@ export default function App() {
             >
               ‹ Lernen
             </button>
-            <MajorScales />
+            {lernenScreen === 'major-scales' ? <MajorScales /> : <MinorScales />}
           </>
         )}
       </main>
@@ -153,8 +197,11 @@ export default function App() {
   );
 }
 
-type LernenMenuProps = { onOpenMajorScales: () => void };
-function LernenMenu({ onOpenMajorScales }: LernenMenuProps) {
+type LernenMenuProps = {
+  onOpenMajorScales: () => void;
+  onOpenMinorScales: () => void;
+};
+function LernenMenu({ onOpenMajorScales, onOpenMinorScales }: LernenMenuProps) {
   return (
     <section className="lernen-menu" data-testid="lernen-menu">
       <h2 className="lernen-menu__title">Lernen</h2>
@@ -169,6 +216,17 @@ function LernenMenu({ onOpenMajorScales }: LernenMenuProps) {
           >
             <span className="lernen-menu__tile-title">Dur-Tonleitern</span>
             <span className="lernen-menu__tile-sub">Major Scales üben</span>
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            className="lernen-menu__tile"
+            data-testid="lernen-tile-minor-scales"
+            onClick={onOpenMinorScales}
+          >
+            <span className="lernen-menu__tile-title">Moll-Tonleitern</span>
+            <span className="lernen-menu__tile-sub">Minor Scales üben</span>
           </button>
         </li>
       </ul>

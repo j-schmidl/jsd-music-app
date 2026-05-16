@@ -121,6 +121,35 @@ button {
   font-size: 16px;
 }
 
+/* Segmented Gitarre / Chromatisch toggle for the tuner. */
+.app__tuner-mode {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.app__tuner-mode-btn {
+  min-height: 32px;
+  padding: 4px 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.app__tuner-mode-btn--active {
+  background: var(--musik);
+  color: var(--fund-02);
+}
+
 .app__main {
   position: relative;
   z-index: 3;

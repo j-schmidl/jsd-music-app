@@ -13,7 +13,9 @@ test.describe('jsd guitar tuner — page shell', () => {
       await expect(page.getByTestId(`string-${id}`)).toBeVisible();
     }
 
-    await expect(page.getByText('Gitarre 6-saitig')).toBeVisible();
+    // Tuner-mode toggle: Gitarre selected by default, Chromatisch available.
+    await expect(page.getByTestId('tuner-mode-guitar')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByTestId('tuner-mode-chromatic')).toBeVisible();
     await expect(page.getByText('Standard')).toBeVisible();
   });
 
@@ -26,6 +28,35 @@ test.describe('jsd guitar tuner — page shell', () => {
       await expect(page.getByTestId(`nav-${id}`)).toHaveCount(0);
     }
     await expect(page.getByTestId('nav-stimmen')).toHaveAttribute('aria-current', 'page');
+  });
+});
+
+test.describe('chromatic tuner mode', () => {
+  test('switching to Chromatisch hides the headstock, tuning selector and AUTOM. switch', async ({ page }) => {
+    await page.goto('/');
+    // Guitar mode shows the string buttons and the AUTOM. switch.
+    await expect(page.getByTestId('string-E2')).toBeVisible();
+    await expect(page.getByTestId('auto-switch')).toBeVisible();
+
+    await page.getByTestId('tuner-mode-chromatic').click();
+    await expect(page.getByTestId('tuner-mode-chromatic')).toHaveAttribute('aria-selected', 'true');
+
+    // No preselected strings, no guitar graphic, no auto/manual switch.
+    await expect(page.getByTestId('string-E2')).toHaveCount(0);
+    await expect(page.getByTestId('auto-switch')).toHaveCount(0);
+    await expect(page.getByTestId('tuning-selector')).toHaveCount(0);
+    // The tuner itself stays on screen.
+    await expect(page.getByTestId('tuner')).toBeVisible();
+  });
+
+  test('returns to the guitar tuner when Gitarre is reselected', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('tuner-mode-chromatic').click();
+    await expect(page.getByTestId('string-E2')).toHaveCount(0);
+
+    await page.getByTestId('tuner-mode-guitar').click();
+    await expect(page.getByTestId('string-E2')).toBeVisible();
+    await expect(page.getByTestId('auto-switch')).toBeVisible();
   });
 });
 

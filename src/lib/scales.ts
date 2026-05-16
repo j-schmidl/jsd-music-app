@@ -16,7 +16,19 @@ const LETTER_SEMI: Record<Letter, number> = {
   B: 11,
 };
 
+// Cumulative semitone offsets from the tonic for each scale degree.
 const MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11] as const;
+const NATURAL_MINOR_STEPS = [0, 2, 3, 5, 7, 8, 10] as const;
+const HARMONIC_MINOR_STEPS = [0, 2, 3, 5, 7, 8, 11] as const; // raised 7th
+const MELODIC_MINOR_STEPS = [0, 2, 3, 5, 7, 9, 11] as const; // ascending form
+
+export type MinorVariant = 'natural' | 'harmonic' | 'melodic';
+
+const MINOR_STEPS: Record<MinorVariant, readonly number[]> = {
+  natural: NATURAL_MINOR_STEPS,
+  harmonic: HARMONIC_MINOR_STEPS,
+  melodic: MELODIC_MINOR_STEPS,
+};
 
 // All conventional major-key tonics. Spellings chosen so the no-repeat-letter
 // rule produces the canonical scale (e.g. F# major, not Gb major, by default).
@@ -38,6 +50,27 @@ export const KEYS = [
 ] as const;
 export type Key = (typeof KEYS)[number];
 
+// Conventional minor-key tonics — the relative minors of the major KEYS.
+// Spellings chosen so the natural-minor no-repeat-letter rule resolves
+// cleanly (e.g. D# minor, not Eb minor, as the relative of F# major).
+export const MINOR_KEYS = [
+  'A',
+  'E',
+  'B',
+  'F#',
+  'C#',
+  'G#',
+  'D#',
+  'A#',
+  'D',
+  'G',
+  'C',
+  'F',
+  'Bb',
+  'Eb',
+] as const;
+export type MinorKey = (typeof MINOR_KEYS)[number];
+
 function accVal(acc: string): number {
   let v = 0;
   for (const c of acc) v += c === '#' ? 1 : c === 'b' ? -1 : 0;
@@ -49,7 +82,9 @@ export function noteSemi(note: string): number {
   return (LETTER_SEMI[letter] + accVal(note.slice(1)) + 12) % 12;
 }
 
-export function buildMajorScale(tonic: string): string[] {
+// Builds a 7-note scale from a cumulative-semitone step pattern, walking the
+// letters A..G once each and adding the accidental needed to hit each pitch.
+function buildScale(tonic: string, steps: readonly number[]): string[] {
   const tonicLetter = tonic[0] as Letter;
   const tonicAcc = tonic.slice(1);
   const tonicSemi = (LETTER_SEMI[tonicLetter] + accVal(tonicAcc) + 12) % 12;
@@ -58,7 +93,7 @@ export function buildMajorScale(tonic: string): string[] {
   const notes: string[] = [];
   for (let i = 0; i < 7; i++) {
     const letter = LETTERS[(startIdx + i) % 7];
-    const targetSemi = (tonicSemi + MAJOR_STEPS[i]) % 12;
+    const targetSemi = (tonicSemi + steps[i]) % 12;
     const naturalSemi = LETTER_SEMI[letter];
     let diff = (targetSemi - naturalSemi + 12) % 12;
     if (diff > 6) diff -= 12; // -2..+2
@@ -77,6 +112,14 @@ export function buildMajorScale(tonic: string): string[] {
     notes.push(letter + acc);
   }
   return notes;
+}
+
+export function buildMajorScale(tonic: string): string[] {
+  return buildScale(tonic, MAJOR_STEPS);
+}
+
+export function buildMinorScale(tonic: string, variant: MinorVariant = 'natural'): string[] {
+  return buildScale(tonic, MINOR_STEPS[variant]);
 }
 
 // Pick `count` distinct indices in 0..6 to hide. Deterministic when `rand` is

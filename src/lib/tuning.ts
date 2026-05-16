@@ -85,6 +85,22 @@ export function nearestString(
   return best;
 }
 
+// Chromatic note names indexed by semitone within an octave (C = 0).
+const CHROMATIC: readonly NoteName[] = [
+  'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
+];
+
+// Maps any frequency to the closest equal-tempered note (full 12-tone scale,
+// any octave). Returns the same shape as a guitar string so the Tuner can
+// render it without special-casing. Used by the tuner's chromatic mode.
+export function nearestNote(freq: number): GuitarString {
+  // MIDI number of the pitch, rounded to the nearest semitone.
+  const midi = Math.round(69 + 12 * Math.log2(freq / 440));
+  const name = CHROMATIC[((midi % 12) + 12) % 12];
+  const octave = Math.floor(midi / 12) - 1;
+  return { id: `${name}${octave}`, name, octave, freq: noteFreq(name, octave) };
+}
+
 export function centsOff(freq: number, target: number): number {
   return 1200 * Math.log2(freq / target);
 }

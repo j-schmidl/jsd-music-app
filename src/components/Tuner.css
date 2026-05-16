@@ -180,6 +180,18 @@
   transform: scale(0.98);
 }
 
+/* Fixed-height holder for the swappable bottom content (start button,
+   listening prompt, hint+note, error). Sized to fit the tallest variant
+   (hint line + note pill) so nothing below it shifts on state changes. */
+.tuner__bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 84px;
+  width: 100%;
+}
+
 .tuner__status {
   display: flex;
   flex-direction: column;
