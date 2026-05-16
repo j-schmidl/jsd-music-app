@@ -27,6 +27,60 @@ function s(name: NoteName, octave: number): GuitarString {
   return { id: `${name}${octave}`, name, octave, freq: noteFreq(name, octave) };
 }
 
+// Public builder for a single string — used by the custom-tuning editor.
+export function makeString(name: NoteName, octave: number): GuitarString {
+  return s(name, octave);
+}
+
+export const NOTE_NAMES: readonly NoteName[] = [
+  'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
+];
+
+// The id reserved for the user's own tuning.
+export const CUSTOM_TUNING_ID = 'custom';
+
+// Builds a Tuning from six (name, octave) pairs, low string first.
+export function makeCustomTuning(strings: readonly { name: NoteName; octave: number }[]): Tuning {
+  return {
+    id: CUSTOM_TUNING_ID,
+    label: 'Eigene Stimmung',
+    strings: strings.map((p) => s(p.name, p.octave)),
+  };
+}
+
+const CUSTOM_TUNING_KEY = 'jsd-custom-tuning';
+
+// Loads the saved custom tuning, or a sensible default (standard tuning) if
+// none is stored yet.
+export function loadCustomTuning(): Tuning {
+  const fallback = makeCustomTuning(
+    TUNINGS[0].strings.map((str) => ({ name: str.name, octave: str.octave })),
+  );
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = window.localStorage.getItem(CUSTOM_TUNING_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as { name: NoteName; octave: number }[];
+    if (!Array.isArray(parsed) || parsed.length !== 6) return fallback;
+    const valid = parsed.every(
+      (p) => NOTE_NAMES.includes(p.name) && Number.isInteger(p.octave),
+    );
+    return valid ? makeCustomTuning(parsed) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function saveCustomTuning(tuning: Tuning): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const payload = tuning.strings.map((str) => ({ name: str.name, octave: str.octave }));
+    window.localStorage.setItem(CUSTOM_TUNING_KEY, JSON.stringify(payload));
+  } catch {
+    /* storage unavailable — ignore */
+  }
+}
+
 export const TUNINGS: readonly Tuning[] = [
   {
     id: 'standard',

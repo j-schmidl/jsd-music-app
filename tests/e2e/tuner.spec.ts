@@ -60,6 +60,53 @@ test.describe('chromatic tuner mode', () => {
   });
 });
 
+test.describe('custom guitar tuning', () => {
+  test('selecting "Eigene Stimmung" shows the per-string editor', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      try {
+        localStorage.removeItem('jsd-custom-tuning');
+      } catch {
+        /* ignore */
+      }
+    });
+    // No editor while a preset tuning is active.
+    await expect(page.getByTestId('custom-tuning-editor')).toHaveCount(0);
+
+    await page.getByTestId('tuning-selector').click();
+    await page.getByTestId('tuning-option-custom').click();
+    // The editor appears with six string rows.
+    await expect(page.getByTestId('custom-tuning-editor')).toBeVisible();
+    for (let i = 0; i < 6; i++) {
+      await expect(page.getByTestId(`custom-string-${i}-note`)).toBeVisible();
+    }
+  });
+
+  test('an edited custom tuning persists across reload', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      try {
+        localStorage.removeItem('jsd-custom-tuning');
+      } catch {
+        /* ignore */
+      }
+    });
+    await page.getByTestId('tuning-selector').click();
+    await page.getByTestId('tuning-option-custom').click();
+
+    // Change the lowest string to D.
+    await page.getByTestId('custom-string-0-note').selectOption('D');
+    await expect(page.getByTestId('custom-string-0-note')).toHaveValue('D');
+
+    await page.reload();
+    // The custom tuning is no longer the active one after reload (resets to a
+    // preset), but reopening it shows the saved D.
+    await page.getByTestId('tuning-selector').click();
+    await page.getByTestId('tuning-option-custom').click();
+    await expect(page.getByTestId('custom-string-0-note')).toHaveValue('D');
+  });
+});
+
 test.describe('theme', () => {
   test('starts in dark mode by default', async ({ page }) => {
     await page.goto('/');

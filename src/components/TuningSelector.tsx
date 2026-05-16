@@ -6,9 +6,13 @@ import './TuningSelector.css';
 type Props = {
   active: Tuning;
   onChange: (tuning: Tuning) => void;
+  // The user's custom tuning, appended to the end of the preset list.
+  custom: Tuning;
 };
 
-export function TuningSelector({ active, onChange }: Props) {
+export function TuningSelector({ active, onChange, custom }: Props) {
+  // Preset tunings plus the user's own at the end.
+  const options = [...TUNINGS, custom];
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLUListElement | null>(null);
@@ -77,7 +81,7 @@ export function TuningSelector({ active, onChange }: Props) {
             data-testid="tuning-selector-menu"
             style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, minWidth: menuPos.minWidth }}
           >
-            {TUNINGS.map((t) => {
+            {options.map((t) => {
               const isActive = t.id === active.id;
               return (
                 <li key={t.id} role="none">

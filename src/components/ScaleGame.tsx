@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ascendingOctave, enharmonicEqual, noteSemi, pickHiddenIndices } from '../lib/scales';
+import { ascendingOctave, enharmonicEqual, pickHiddenIndices } from '../lib/scales';
 import { playNote } from '../lib/tone';
+import { Piano } from './Piano';
 import './ScaleGame.css';
 
 type Mode = 'build' | 'fill' | 'piano';
@@ -620,7 +621,19 @@ export function ScaleGame({ config }: { config: ScaleGameConfig }) {
       )}
 
       {mode === 'piano' && (
-        <Piano difficulty={difficulty} wrongKey={wrongKey} onClick={handlePianoClick} disabled={done} />
+        <div className="scale-game__piano-wrap">
+          <Piano
+            labels={difficulty === 'easy' ? 'all' : difficulty === 'medium' ? 'white' : 'none'}
+            wrongKey={wrongKey}
+            onClick={handlePianoClick}
+            disabled={done}
+          />
+          <p className="scale-game__piano-hint">
+            {difficulty === 'easy' && 'Alle Tasten beschriftet.'}
+            {difficulty === 'medium' && 'Nur weiße Tasten beschriftet.'}
+            {difficulty === 'hard' && 'Keine Beschriftung.'}
+          </p>
+        </div>
       )}
 
       {countdown !== null && (
@@ -684,77 +697,3 @@ function NextScaleButton({ remaining, total, onClick }: NextScaleButtonProps) {
   );
 }
 
-// ---- Piano keyboard --------------------------------------------------------
-// Two octaves (C..B C..B). White keys are flex children; black keys are
-// absolutely positioned overlays so they sit between the right pair of whites.
-
-type PianoProps = {
-  difficulty: Difficulty;
-  wrongKey: string | null;
-  onClick: (note: string, octave: 0 | 1) => void;
-  disabled: boolean;
-};
-
-const WHITES = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'];
-const BLACK_AFTER = [true, true, false, true, true, true, false, true, true, false, true, true, true, false];
-
-function Piano({ difficulty, wrongKey, onClick, disabled }: PianoProps) {
-  const showWhiteLabel = difficulty !== 'hard';
-  const showBlackLabel = difficulty === 'easy';
-  return (
-    <div className="scale-game__piano-wrap" data-testid="piano">
-      <div className="scale-game__piano">
-        {WHITES.map((name, i) => {
-          const isWrong = wrongKey === name;
-          return (
-            <button
-              key={`w${i}`}
-              type="button"
-              data-testid={`piano-key-${name}-${i}`}
-              data-note={name}
-              data-octave={i < 7 ? 0 : 1}
-              className={`scale-game__key scale-game__key--white${
-                isWrong ? ' scale-game__key--wrong' : ''
-              }`}
-              onClick={() => onClick(name, i < 7 ? 0 : 1)}
-              disabled={disabled}
-              aria-label={name}
-            >
-              {showWhiteLabel && <span className="scale-game__key-label">{name}</span>}
-            </button>
-          );
-        })}
-        {WHITES.map((white, i) => {
-          if (!BLACK_AFTER[i]) return null;
-          const sharp = `${white}#`;
-          const isWrong =
-            wrongKey !== null && (wrongKey === sharp || noteSemi(wrongKey) === noteSemi(sharp));
-          const leftPct = ((i + 1) / WHITES.length) * 100;
-          return (
-            <button
-              key={`b${i}`}
-              type="button"
-              data-testid={`piano-key-${sharp}-${i}`}
-              data-note={sharp}
-              data-octave={i < 7 ? 0 : 1}
-              className={`scale-game__key scale-game__key--black${
-                isWrong ? ' scale-game__key--wrong' : ''
-              }`}
-              style={{ left: `calc(${leftPct}% - 3.4%)` }}
-              onClick={() => onClick(sharp, i < 7 ? 0 : 1)}
-              disabled={disabled}
-              aria-label={sharp}
-            >
-              {showBlackLabel && <span className="scale-game__key-label">{sharp}</span>}
-            </button>
-          );
-        })}
-      </div>
-      <p className="scale-game__piano-hint">
-        {difficulty === 'easy' && 'Alle Tasten beschriftet.'}
-        {difficulty === 'medium' && 'Nur weiße Tasten beschriftet.'}
-        {difficulty === 'hard' && 'Keine Beschriftung.'}
-      </p>
-    </div>
-  );
-}

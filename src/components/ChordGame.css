@@ -1,0 +1,337 @@
+.chord-game {
+  position: relative;
+  z-index: 3;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px 16px;
+  gap: 12px;
+}
+
+.chord-game__title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.chord-game__sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* ---- Info panel --------------------------------------------------------- */
+.chord-game__info-toggle {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--musik) 40%, transparent);
+  background: color-mix(in srgb, var(--musik) 10%, var(--surface));
+  color: var(--musik);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+}
+
+.chord-game__info {
+  margin: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.chord-game__info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chord-game__info-term {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--fg);
+}
+
+.chord-game__info-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* ---- Controls + settings ----------------------------------------------- */
+.chord-game__controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.chord-game__settings-toggle {
+  flex: 1 1 auto;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-body);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+}
+
+.chord-game__settings-label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.chord-game__settings-summary {
+  flex: 1;
+  font-size: 13px;
+  color: var(--fg);
+}
+
+.chord-game__settings {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.chord-game__field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 110px;
+}
+
+.chord-game__field > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.chord-game__field select {
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+/* ---- Prompt ------------------------------------------------------------- */
+.chord-game__prompt {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--fg);
+}
+
+/* ---- Note chips (shown notes / placed notes) --------------------------- */
+.chord-game__notes,
+.chord-game__placed {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-height: 48px;
+}
+
+.chord-game__note-chip {
+  min-height: 40px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  border: 2px solid var(--musik);
+  background: color-mix(in srgb, var(--musik) 12%, transparent);
+  color: var(--fg);
+  font-family: var(--font-title);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.chord-game__note-chip--removable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chord-game__placed-empty {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.chord-game__play {
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--musik);
+  background: var(--musik);
+  color: var(--fund-02);
+  font-size: 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- "name" direction: root + quality guess --------------------------- */
+.chord-game__guess {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chord-game__qualities {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.chord-game__quality {
+  min-height: 44px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fg) 14%, transparent);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chord-game__quality--active {
+  background: var(--musik);
+  border-color: var(--musik);
+  color: var(--fund-02);
+}
+
+/* ---- "notes" direction: picker ----------------------------------------- */
+.chord-game__picker {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.chord-game__pick {
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fg) 14%, transparent);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-title);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chord-game__pick--placed {
+  background: var(--musik);
+  border-color: var(--musik);
+  color: var(--fund-02);
+}
+
+.chord-game__or {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---- Actions / next / feedback / score --------------------------------- */
+.chord-game__primary,
+.chord-game__secondary {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  border: 1px solid var(--musik);
+}
+
+.chord-game__primary {
+  background: var(--musik);
+  color: var(--fund-02);
+}
+
+.chord-game__secondary {
+  background: transparent;
+  color: var(--fg);
+  border-color: color-mix(in srgb, var(--fg) 24%, transparent);
+}
+
+.chord-game__primary:disabled,
+.chord-game__secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chord-game__new-round {
+  flex: 0 0 auto;
+}
+
+.chord-game__actions {
+  display: flex;
+  gap: 8px;
+}
+.chord-game__actions > * {
+  flex: 1;
+}
+
+.chord-game__next {
+  align-self: center;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--musik);
+  color: var(--fund-02);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chord-game__feedback {
+  min-height: 22px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.chord-game__feedback--good { color: var(--tech); }
+.chord-game__feedback--bad { color: #ff5c6c; }
+.chord-game__feedback--warn { color: #f5b942; }
+.chord-game__feedback--info { color: var(--musik); }
+
+.chord-game__score {
+  font-size: 13px;
+  color: var(--muted);
+}

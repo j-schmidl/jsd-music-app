@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
 import { AutoSwitch } from './components/AutoSwitch';
 import { BottomNav } from './components/BottomNav';
+import { ChordGame } from './components/ChordGame';
+import { CustomTuningEditor } from './components/CustomTuningEditor';
 import { Headstock } from './components/Headstock';
 import { MajorScales } from './components/MajorScales';
 import { MicButton } from './components/MicButton';
@@ -14,7 +16,16 @@ import { WaveBackground } from './components/WaveBackground';
 import { Wordmark } from './components/Wordmark';
 import { usePitchDetection } from './hooks/usePitchDetection';
 import { useTheme } from './hooks/useTheme';
-import { TUNINGS, nearestNote, nearestString, type GuitarString, type Tuning } from './lib/tuning';
+import {
+  CUSTOM_TUNING_ID,
+  TUNINGS,
+  loadCustomTuning,
+  nearestNote,
+  nearestString,
+  saveCustomTuning,
+  type GuitarString,
+  type Tuning,
+} from './lib/tuning';
 
 export default function App() {
   const { theme, toggle } = useTheme();
@@ -23,11 +34,12 @@ export default function App() {
   // 12-tone detection with no preselected string and no guitar graphic.
   const [tunerMode, setTunerMode] = useState<'guitar' | 'chromatic'>('guitar');
   const [tuning, setTuning] = useState<Tuning>(TUNINGS[0]);
+  // The user's own tuning, restored from localStorage. Kept separate from
+  // `tuning` so it survives even while a preset is selected.
+  const [customTuning, setCustomTuning] = useState<Tuning>(() => loadCustomTuning());
   const [pinned, setPinned] = useState<GuitarString | null>(null);
   const [activeTab, setActiveTab] = useState('stimmen');
-  const [lernenScreen, setLernenScreen] = useState<'menu' | 'major-scales' | 'minor-scales'>(
-    'menu',
-  );
+  const [lernenScreen, setLernenScreen] = useState<LernenScreen>('menu');
   const pitch = usePitchDetection();
   const demoFrequency = useDemoFrequency();
 
@@ -79,6 +91,17 @@ export default function App() {
   const handleSelectString = (s: GuitarString) => {
     if (mode === 'manual') setPinned(s);
   };
+
+  // Persist an edited custom tuning and keep it active so the tuner updates
+  // immediately as the user changes a string.
+  const handleCustomTuningChange = (next: Tuning) => {
+    setCustomTuning(next);
+    saveCustomTuning(next);
+    setTuning(next);
+    setPinned(null); // the pinned string may no longer exist in the new tuning
+  };
+
+  const isCustomTuning = tuning.id === CUSTOM_TUNING_ID;
 
   const handleTabChange = (id: string) => {
     setActiveTab(id);
@@ -139,8 +162,14 @@ export default function App() {
               Chromatisch
             </button>
           </div>
-          {!isChromatic && <TuningSelector active={tuning} onChange={setTuning} />}
+          {!isChromatic && (
+            <TuningSelector active={tuning} onChange={setTuning} custom={customTuning} />
+          )}
         </div>
+      )}
+
+      {isTuner && !isChromatic && isCustomTuning && (
+        <CustomTuningEditor tuning={customTuning} onChange={handleCustomTuningChange} />
       )}
 
       <main className="app__main">
@@ -170,12 +199,9 @@ export default function App() {
           </>
         )}
         {isLernen && lernenScreen === 'menu' && (
-          <LernenMenu
-            onOpenMajorScales={() => setLernenScreen('major-scales')}
-            onOpenMinorScales={() => setLernenScreen('minor-scales')}
-          />
+          <LernenMenu onOpen={setLernenScreen} />
         )}
-        {isLernen && (lernenScreen === 'major-scales' || lernenScreen === 'minor-scales') && (
+        {isLernen && lernenScreen !== 'menu' && (
           <>
             <button
               type="button"
@@ -186,7 +212,9 @@ export default function App() {
             >
               ‹ Lernen
             </button>
-            {lernenScreen === 'major-scales' ? <MajorScales /> : <MinorScales />}
+            {lernenScreen === 'major-scales' && <MajorScales />}
+            {lernenScreen === 'minor-scales' && <MinorScales />}
+            {lernenScreen === 'chord-game' && <ChordGame />}
           </>
         )}
       </main>
@@ -197,38 +225,35 @@ export default function App() {
   );
 }
 
-type LernenMenuProps = {
-  onOpenMajorScales: () => void;
-  onOpenMinorScales: () => void;
-};
-function LernenMenu({ onOpenMajorScales, onOpenMinorScales }: LernenMenuProps) {
+// Every learning game reachable from the Lernen menu. Add a tile here and a
+// render branch in <main> to wire up a new game — no other plumbing needed.
+type LernenScreen = 'menu' | 'major-scales' | 'minor-scales' | 'chord-game';
+
+const LERNEN_GAMES: { id: Exclude<LernenScreen, 'menu'>; title: string; sub: string }[] = [
+  { id: 'major-scales', title: 'Dur-Tonleitern', sub: 'Major Scales üben' },
+  { id: 'minor-scales', title: 'Moll-Tonleitern', sub: 'Minor Scales üben' },
+  { id: 'chord-game', title: 'Akkorde erkennen', sub: 'Akkorde benennen & bauen' },
+];
+
+function LernenMenu({ onOpen }: { onOpen: (screen: LernenScreen) => void }) {
   return (
     <section className="lernen-menu" data-testid="lernen-menu">
       <h2 className="lernen-menu__title">Lernen</h2>
       <p className="lernen-menu__sub">Wähle ein Spiel.</p>
       <ul className="lernen-menu__list">
-        <li>
-          <button
-            type="button"
-            className="lernen-menu__tile"
-            data-testid="lernen-tile-major-scales"
-            onClick={onOpenMajorScales}
-          >
-            <span className="lernen-menu__tile-title">Dur-Tonleitern</span>
-            <span className="lernen-menu__tile-sub">Major Scales üben</span>
-          </button>
-        </li>
-        <li>
-          <button
-            type="button"
-            className="lernen-menu__tile"
-            data-testid="lernen-tile-minor-scales"
-            onClick={onOpenMinorScales}
-          >
-            <span className="lernen-menu__tile-title">Moll-Tonleitern</span>
-            <span className="lernen-menu__tile-sub">Minor Scales üben</span>
-          </button>
-        </li>
+        {LERNEN_GAMES.map((game) => (
+          <li key={game.id}>
+            <button
+              type="button"
+              className="lernen-menu__tile"
+              data-testid={`lernen-tile-${game.id}`}
+              onClick={() => onOpen(game.id)}
+            >
+              <span className="lernen-menu__tile-title">{game.title}</span>
+              <span className="lernen-menu__tile-sub">{game.sub}</span>
+            </button>
+          </li>
+        ))}
       </ul>
     </section>
   );

@@ -345,10 +345,10 @@ test.describe('Major Scales — Piano mode', () => {
     await openMajorScales(page);
 
     await selectDifficulty(page, 'easy');
-    await expect(page.locator('.scale-game__key-label').first()).toBeVisible();
+    await expect(page.locator('.piano__key-label').first()).toBeVisible();
 
     await selectDifficulty(page, 'hard');
-    await expect(page.locator('.scale-game__key-label')).toHaveCount(0);
+    await expect(page.locator('.piano__key-label')).toHaveCount(0);
   });
 });
 

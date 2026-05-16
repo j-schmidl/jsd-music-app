@@ -1,0 +1,64 @@
+.custom-tuning {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 16px 12px;
+}
+
+.custom-tuning__hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.custom-tuning__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.custom-tuning__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.custom-tuning__index {
+  width: 20px;
+  flex: 0 0 auto;
+  text-align: center;
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.custom-tuning__select {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.custom-tuning__play {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--musik);
+  background: var(--musik);
+  color: var(--fund-02);
+  font-size: 13px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
