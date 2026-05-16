@@ -94,3 +94,15 @@ export function pickHiddenIndices(count: number, rand: () => number = Math.rando
 export function enharmonicEqual(a: string, b: string): boolean {
   return noteSemi(a) === noteSemi(b);
 }
+
+// Octave offset (0 or 1) for the i-th degree of a major scale starting on
+// `tonic`, so that the whole scale ascends continuously instead of wrapping
+// back down when the letter sequence rolls over from B to C.
+//
+// E.g. G major: G A B (octave 0) C D E F# (octave 1, octave-up bookend at i=7).
+export function ascendingOctave(i: number, tonic: string): 0 | 1 {
+  if (i >= 7) return 1; // closing-tonic bookend always sits an octave up
+  const tonicIdx = LETTERS.indexOf(tonic[0] as Letter);
+  const letterIdx = LETTERS.indexOf(LETTERS[(tonicIdx + i) % 7]);
+  return letterIdx < tonicIdx ? 1 : 0;
+}

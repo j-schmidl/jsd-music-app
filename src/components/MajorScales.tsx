@@ -1,16 +1,71 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   KEYS,
+  ascendingOctave,
   buildMajorScale,
   enharmonicEqual,
   noteSemi,
   pickHiddenIndices,
   type Key,
 } from '../lib/scales';
+import { playNote } from '../lib/tone';
 import './MajorScales.css';
 
 type Mode = 'build' | 'fill' | 'piano';
 type Difficulty = 'easy' | 'medium' | 'hard';
+type KeyChoice = 'random' | Key;
+
+const MODES: Mode[] = ['build', 'fill', 'piano'];
+
+function pickRandomMode(): Mode {
+  return MODES[Math.floor(Math.random() * MODES.length)];
+}
+
+// Settings persistence — stored in localStorage so the app remembers the
+// user's preferences across reloads. Cookies aren't needed for client-only
+// preferences and we already use this pattern for the theme toggle.
+const STORAGE_KEY = 'jsd-majorscales-settings';
+const DIFFICULTIES: readonly Difficulty[] = ['easy', 'medium', 'hard'];
+
+type Settings = { keyChoice: KeyChoice; difficulty: Difficulty };
+
+function loadSettings(): Settings {
+  const fallback: Settings = { keyChoice: 'random', difficulty: 'hard' };
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as Partial<Settings>;
+    const keyChoice: KeyChoice =
+      parsed.keyChoice === 'random' ||
+      (typeof parsed.keyChoice === 'string' && (KEYS as readonly string[]).includes(parsed.keyChoice))
+        ? (parsed.keyChoice as KeyChoice)
+        : 'random';
+    const difficulty: Difficulty = DIFFICULTIES.includes(parsed.difficulty as Difficulty)
+      ? (parsed.difficulty as Difficulty)
+      : 'hard';
+    return { keyChoice, difficulty };
+  } catch {
+    return fallback;
+  }
+}
+
+function saveSettings(s: Settings) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  } catch {
+    /* storage may be unavailable — ignore */
+  }
+}
+
+const DIFFICULTY_LABELS: Record<Difficulty, string> = {
+  easy: 'Leicht',
+  medium: 'Mittel',
+  hard: 'Schwer',
+};
+
+const AUTO_ADVANCE_SECONDS = 5;
 
 const HIDDEN_BY_DIFFICULTY: Record<Difficulty, number> = {
   easy: 3,
@@ -20,8 +75,10 @@ const HIDDEN_BY_DIFFICULTY: Record<Difficulty, number> = {
 
 const NOTE_OPTIONS = (() => {
   const out: string[] = [];
+  // Order each letter group as flat → natural → sharp so the picker reads
+  // ascending in pitch within each letter (e.g. Cb, C, C#).
   for (const L of ['C', 'D', 'E', 'F', 'G', 'A', 'B']) {
-    out.push(L, `${L}#`, `${L}b`);
+    out.push(`${L}b`, L, `${L}#`);
   }
   return out;
 })();
@@ -31,13 +88,20 @@ function pickRandomKey(): Key {
 }
 
 export function MajorScales() {
-  const [mode, setMode] = useState<Mode>('build');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [keyChoice, setKeyChoice] = useState<'random' | Key>('random');
+  const [mode, setMode] = useState<Mode>(() => pickRandomMode());
+  const initialSettings = useMemo(() => loadSettings(), []);
+  const [difficulty, setDifficulty] = useState<Difficulty>(initialSettings.difficulty);
+  const [keyChoice, setKeyChoice] = useState<KeyChoice>(initialSettings.keyChoice);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Persist preferences whenever they change.
+  useEffect(() => {
+    saveSettings({ keyChoice, difficulty });
+  }, [keyChoice, difficulty]);
 
   const [activeKey, setActiveKey] = useState<Key>(() => pickRandomKey());
   const [hidden, setHidden] = useState<Set<number>>(new Set());
-  const [filled, setFilled] = useState<(string | null)[]>(Array(7).fill(null));
+  const [filled, setFilled] = useState<(string | null)[]>(Array(8).fill(null));
   const [activeSlot, setActiveSlot] = useState(0);
   const [done, setDone] = useState(false);
   const [feedback, setFeedback] = useState<{ kind: 'good' | 'bad' | 'info'; text: string } | null>(
@@ -45,62 +109,103 @@ export function MajorScales() {
   );
   const [score, setScore] = useState({ correct: 0, attempts: 0 });
   const [wrongKey, setWrongKey] = useState<string | null>(null);
+  // Build/Fill: indices flagged as wrong by the most recent Prüfen attempt
+  // that the user can still correct without losing the round.
+  const [wrongMarkings, setWrongMarkings] = useState<Set<number>>(new Set());
+  // Countdown remaining (seconds) when piano-mode round ends correctly.
+  // null = no countdown active.
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const countdownTimerRef = useRef<number | null>(null);
 
-  const scale = useMemo(() => buildMajorScale(activeKey), [activeKey]);
+  // The 7 scale degrees followed by the tonic an octave up so the line ends
+  // resolved (e.g. C major reads C D E F G A B C).
+  const scale = useMemo(() => {
+    const built = buildMajorScale(activeKey);
+    return [...built, built[0]];
+  }, [activeKey]);
 
-  const newRound = useCallback(
-    (overrideMode?: Mode) => {
-      const m = overrideMode ?? mode;
-      const k = keyChoice === 'random' ? pickRandomKey() : keyChoice;
-      setActiveKey(k);
-      setFilled(Array(7).fill(null));
-      setDone(false);
-      setFeedback(null);
-      setWrongKey(null);
+  const newRound = useCallback(() => {
+    if (countdownTimerRef.current !== null) {
+      window.clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    setCountdown(null);
+    const m = pickRandomMode();
+    setMode(m);
+    const k = keyChoice === 'random' ? pickRandomKey() : keyChoice;
+    setActiveKey(k);
+    setDone(false);
+    setFeedback(null);
+    setWrongKey(null);
+    setWrongMarkings(new Set());
 
-      if (m === 'fill') {
-        const hideCount = HIDDEN_BY_DIFFICULTY[difficulty];
-        const hiddenIdx = new Set(pickHiddenIndices(hideCount));
-        const next: (string | null)[] = Array(7).fill(null);
-        const built = buildMajorScale(k);
-        for (let i = 0; i < 7; i++) {
-          if (!hiddenIdx.has(i)) next[i] = built[i];
-        }
-        setHidden(hiddenIdx);
-        setFilled(next);
-        const first = [0, 1, 2, 3, 4, 5, 6].find((i) => hiddenIdx.has(i)) ?? 0;
-        setActiveSlot(first);
-      } else {
-        setHidden(new Set());
-        setActiveSlot(0);
+    const built = buildMajorScale(k);
+    const closingTonic = built[0];
+
+    if (m === 'fill') {
+      const hideCount = HIDDEN_BY_DIFFICULTY[difficulty];
+      const hiddenIdx = new Set(pickHiddenIndices(hideCount));
+      const next: (string | null)[] = Array(8).fill(null);
+      for (let i = 0; i < 7; i++) {
+        if (!hiddenIdx.has(i)) next[i] = built[i];
       }
-    },
-    [mode, keyChoice, difficulty],
-  );
+      next[7] = closingTonic; // closing octave is always shown
+      setHidden(hiddenIdx);
+      setFilled(next);
+      const first = [0, 1, 2, 3, 4, 5, 6].find((i) => hiddenIdx.has(i)) ?? 0;
+      setActiveSlot(first);
+    } else if (m === 'build') {
+      // Closing tonic is also always shown in build mode — it's the visual
+      // anchor that the picker entries climb up to.
+      const next: (string | null)[] = Array(8).fill(null);
+      next[7] = closingTonic;
+      setHidden(new Set());
+      setFilled(next);
+      setActiveSlot(0);
+    } else {
+      // Piano: user plays all 8 keys themselves, including the closing tonic.
+      setHidden(new Set());
+      setFilled(Array(8).fill(null));
+      setActiveSlot(0);
+    }
+  }, [keyChoice, difficulty]);
 
-  // Reset round whenever mode, difficulty, or key choice changes.
+  // Reset round whenever difficulty or key choice changes; mode is rerolled
+  // each round and not user-controlled.
   useEffect(() => {
     newRound();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, difficulty, keyChoice]);
-
-  const handleModeChange = (next: Mode) => setMode(next);
+  }, [difficulty, keyChoice]);
 
   // ---- Build / Fill: pick a note via the chip picker ----
   const placeNote = (note: string) => {
-    if (done) return;
+    if (done) {
+      // Round is finalized; just give audible feedback and bail.
+      playNote(note, 0);
+      return;
+    }
     let i = activeSlot;
     if (hidden.size > 0 && !hidden.has(i)) {
       // shouldn't normally happen, but find next editable slot
       const next = [...Array(7).keys()].find((k) => hidden.has(k) && filled[k] === null);
       if (next !== undefined) i = next;
     }
+    // Play the note at the octave that fits this slot in the ascending
+    // scale, so a C placed into slot 3 of G major sounds as C5, not C4.
+    playNote(note, ascendingOctave(i, activeKey));
     if (filled[i] !== null && hidden.size === 0) {
       // overwrite is allowed in build mode
     }
     const updated = [...filled];
     updated[i] = note;
     setFilled(updated);
+    // The slot just got a new value; drop any leftover red flag on it from
+    // the previous Prüfen attempt.
+    if (wrongMarkings.has(i)) {
+      const next = new Set(wrongMarkings);
+      next.delete(i);
+      setWrongMarkings(next);
+    }
 
     // advance to next empty editable slot
     const editable = (k: number) => (hidden.size === 0 ? true : hidden.has(k));
@@ -125,21 +230,37 @@ export function MajorScales() {
   // ---- Build / Fill: check whole answer ----
   const checkAnswer = () => {
     if (done) return;
-    let allCorrect = true;
+    const wrongs = new Set<number>();
     for (let i = 0; i < 7; i++) {
       if (hidden.size > 0 && !hidden.has(i)) continue;
-      if (filled[i] !== scale[i]) {
-        allCorrect = false;
-        break;
+      // Spelling matters: a major scale uses each letter A..G exactly once,
+      // so e.g. C# major requires E# (not F) and F# (not Gb). We compare on
+      // exact spelling, not pitch class.
+      if (filled[i] === null || filled[i] !== scale[i]) {
+        wrongs.add(i);
       }
     }
-    setDone(true);
-    setScore((s) => ({ correct: s.correct + (allCorrect ? 1 : 0), attempts: s.attempts + 1 }));
-    setFeedback(
-      allCorrect
-        ? { kind: 'good', text: `Richtig! ${activeKey} dur = ${scale.join(' ')}` }
-        : { kind: 'bad', text: `Nicht ganz. Richtige Tonleiter: ${scale.join(' ')}` },
-    );
+    if (wrongs.size === 0) {
+      setDone(true);
+      setScore((s) => ({ correct: s.correct + 1, attempts: s.attempts + 1 }));
+      setFeedback({ kind: 'good', text: `Richtig! ${activeKey} dur = ${scale.join(' ')}` });
+      setWrongMarkings(new Set());
+      // Play the closing tonic an octave up so the build/fill round resolves
+      // audibly — same idea as the bookend slot, just without requiring a tap.
+      playNote(scale[7], 1);
+    } else {
+      // Don't lock the round: flag the wrong slots in red and let the user
+      // correct them. Score only changes on a final answer (right or via
+      // Auflösen).
+      setWrongMarkings(wrongs);
+      setFeedback({
+        kind: 'bad',
+        text:
+          wrongs.size === 1
+            ? '1 Fehler – versuch es nochmal.'
+            : `${wrongs.size} Fehler – versuch es nochmal.`,
+      });
+    }
   };
 
   const reveal = () => {
@@ -147,10 +268,46 @@ export function MajorScales() {
     setDone(true);
     setScore((s) => ({ ...s, attempts: s.attempts + 1 }));
     setFeedback({ kind: 'info', text: `Auflösung: ${scale.join(' ')}` });
+    setWrongMarkings(new Set());
+    playNote(scale[7], 1);
   };
 
+  // ---- Auto-advance countdown after piano-mode success ----
+  const clearCountdown = useCallback(() => {
+    if (countdownTimerRef.current !== null) {
+      window.clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    setCountdown(null);
+  }, []);
+
+  const startCountdown = useCallback(() => {
+    clearCountdown();
+    setCountdown(AUTO_ADVANCE_SECONDS);
+    countdownTimerRef.current = window.setInterval(() => {
+      setCountdown((c) => {
+        if (c === null) return c;
+        if (c <= 1) {
+          if (countdownTimerRef.current !== null) {
+            window.clearInterval(countdownTimerRef.current);
+            countdownTimerRef.current = null;
+          }
+          // Defer the round change to the next tick so React can flush the
+          // 0-state render before we reset state.
+          window.setTimeout(() => newRound(), 0);
+          return null;
+        }
+        return c - 1;
+      });
+    }, 1000);
+  }, [clearCountdown, newRound]);
+
+  // Cancel countdown on unmount.
+  useEffect(() => () => clearCountdown(), [clearCountdown]);
+
   // ---- Piano mode: instant feedback per click ----
-  const handlePianoClick = (clickedNote: string) => {
+  const handlePianoClick = (clickedNote: string, octave: 0 | 1) => {
+    playNote(clickedNote, octave);
     if (done) return;
     const idx = filled.findIndex((x) => x === null);
     if (idx === -1) return;
@@ -161,10 +318,11 @@ export function MajorScales() {
       updated[idx] = expected; // store canonical spelling
       setFilled(updated);
       setWrongKey(null);
-      if (idx === 6) {
+      if (idx === 7) {
         setDone(true);
         setScore((s) => ({ correct: s.correct + 1, attempts: s.attempts + 1 }));
         setFeedback({ kind: 'good', text: `Richtig! ${activeKey} dur = ${scale.join(' ')}` });
+        startCountdown();
       } else {
         setActiveSlot(idx + 1);
       }
@@ -180,6 +338,9 @@ export function MajorScales() {
 
   // Helpers for rendering
   const slotState = (i: number): 'given' | 'filled' | 'empty' | 'active' => {
+    // The closing-tonic slot in build/fill is shown as given so the user sees
+    // the resolution but cannot edit it.
+    if ((mode === 'build' || mode === 'fill') && i === 7) return 'given';
     if (mode === 'fill' && !hidden.has(i)) return 'given';
     if (filled[i] !== null) return 'filled';
     if (i === activeSlot && !done) return 'active';
@@ -194,69 +355,70 @@ export function MajorScales() {
         Wiederholung.
       </p>
 
-      <div className="major-scales__modes" role="tablist" aria-label="Übungsmodus">
-        {(
-          [
-            { id: 'build', label: '1. Aufbauen' },
-            { id: 'fill', label: '2. Lücken' },
-            { id: 'piano', label: '3. Klavier' },
-          ] as { id: Mode; label: string }[]
-        ).map((m) => (
-          <button
-            key={m.id}
-            role="tab"
-            type="button"
-            aria-selected={mode === m.id}
-            data-testid={`mode-${m.id}`}
-            className={`major-scales__mode${mode === m.id ? ' major-scales__mode--active' : ''}`}
-            onClick={() => handleModeChange(m.id)}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
-
       <div className="major-scales__controls">
-        <label className="major-scales__field">
-          <span>Tonart</span>
-          <select
-            data-testid="key-select"
-            value={keyChoice}
-            onChange={(e) => setKeyChoice(e.target.value as 'random' | Key)}
-          >
-            <option value="random">Zufall</option>
-            {KEYS.map((k) => (
-              <option key={k} value={k}>
-                {k} dur
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {(mode === 'fill' || mode === 'piano') && (
-          <label className="major-scales__field">
-            <span>{mode === 'fill' ? 'Schwierigkeit' : 'Hilfe'}</span>
-            <select
-              data-testid="difficulty-select"
-              value={difficulty}
-              onChange={(e) => setDifficulty(e.target.value as Difficulty)}
-            >
-              <option value="easy">Leicht{mode === 'fill' ? ' (3)' : ''}</option>
-              <option value="medium">Mittel{mode === 'fill' ? ' (5)' : ''}</option>
-              <option value="hard">Schwer{mode === 'fill' ? ' (6)' : ''}</option>
-            </select>
-          </label>
-        )}
-
+        <button
+          type="button"
+          data-testid="settings-toggle"
+          className="major-scales__settings-toggle"
+          aria-expanded={settingsOpen}
+          aria-controls="major-scales-settings"
+          onClick={() => setSettingsOpen((s) => !s)}
+        >
+          <span className="major-scales__settings-label">Einstellungen</span>
+          <span className="major-scales__settings-summary" data-testid="settings-summary">
+            Tonart: {keyChoice === 'random' ? 'Zufall' : `${keyChoice} dur`} · Schwierigkeit:{' '}
+            {DIFFICULTY_LABELS[difficulty]}
+          </span>
+          <span className="major-scales__settings-chevron" aria-hidden="true">
+            {settingsOpen ? '▾' : '▸'}
+          </span>
+        </button>
         <button
           type="button"
           data-testid="new-round"
-          className="major-scales__primary"
+          className="major-scales__primary major-scales__new-round"
           onClick={() => newRound()}
         >
           Neue Runde
         </button>
       </div>
+
+      {settingsOpen && (
+        <div
+          id="major-scales-settings"
+          className="major-scales__settings"
+          data-testid="settings-panel"
+        >
+          <label className="major-scales__field">
+            <span>Tonart</span>
+            <select
+              data-testid="key-select"
+              value={keyChoice}
+              onChange={(e) => setKeyChoice(e.target.value as KeyChoice)}
+            >
+              <option value="random">Zufall</option>
+              {KEYS.map((k) => (
+                <option key={k} value={k}>
+                  {k} dur
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="major-scales__field">
+            <span>Schwierigkeit</span>
+            <select
+              data-testid="difficulty-select"
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value as Difficulty)}
+            >
+              <option value="easy">Leicht</option>
+              <option value="medium">Mittel</option>
+              <option value="hard">Schwer</option>
+            </select>
+          </label>
+        </div>
+      )}
 
       <p className="major-scales__prompt" data-testid="prompt">
         {mode === 'build' && (
@@ -277,22 +439,40 @@ export function MajorScales() {
       </p>
 
       <div className="major-scales__slots" data-testid="slots">
-        {Array.from({ length: 7 }, (_, i) => {
+        {Array.from({ length: 8 }, (_, i) => {
           const st = slotState(i);
           const value = filled[i] ?? '';
           const showAsCorrect =
             done && filled[i] !== null && filled[i] === scale[i] ? 'correct' : '';
+          // Red highlight after a failed Prüfen (still editable) or after a
+          // finalized round if the answer was wrong.
           const showAsWrong =
-            done && filled[i] !== null && filled[i] !== scale[i] ? 'wrong' : '';
+            wrongMarkings.has(i) ||
+            (done && filled[i] !== null && filled[i] !== scale[i])
+              ? 'wrong'
+              : '';
+          // Slot 7 is the closing-octave bookend, not a scale degree itself.
+          const isOctave = i === 7;
           return (
             <button
               key={i}
               type="button"
               data-testid={`slot-${i}`}
               data-state={st}
-              className={`major-scales__slot major-scales__slot--${st} ${showAsCorrect} ${showAsWrong}`}
+              className={`major-scales__slot major-scales__slot--${st} ${showAsCorrect} ${showAsWrong}${
+                isOctave ? ' major-scales__slot--octave' : ''
+              }`}
               onClick={() => {
-                if (mode === 'piano' || done) return;
+                if (mode === 'piano') return;
+                // Play whatever note the slot currently shows (if any) so the
+                // user can review by tapping. Each slot uses the octave that
+                // keeps the scale ascending continuously (e.g. G major: G3
+                // A3 B3 C4 D4 E4 F#4 G4).
+                if (filled[i]) {
+                  playNote(filled[i] as string, ascendingOctave(i, activeKey));
+                }
+                if (done) return;
+                if ((mode === 'build' || mode === 'fill') && isOctave) return;
                 if (mode === 'fill' && !hidden.has(i)) return;
                 setActiveSlot(i);
               }}
@@ -351,6 +531,14 @@ export function MajorScales() {
         />
       )}
 
+      {countdown !== null && (
+        <NextScaleButton
+          remaining={countdown}
+          total={AUTO_ADVANCE_SECONDS}
+          onClick={() => newRound()}
+        />
+      )}
+
       <div
         className={`major-scales__feedback major-scales__feedback--${feedback?.kind ?? 'none'}`}
         data-testid="feedback"
@@ -366,6 +554,56 @@ export function MajorScales() {
   );
 }
 
+// ---- Next-scale countdown button ------------------------------------------
+
+type NextScaleButtonProps = {
+  remaining: number;
+  total: number;
+  onClick: () => void;
+};
+
+function NextScaleButton({ remaining, total, onClick }: NextScaleButtonProps) {
+  return (
+    <button
+      type="button"
+      data-testid="next-scale"
+      className="major-scales__next"
+      onClick={onClick}
+    >
+      {/* The CSS-driven SVG ring drains around the button as the countdown
+          ticks down. Restarting the animation each tick keeps the visual
+          synced even if React batches updates. */}
+      <span className="major-scales__next-ring" aria-hidden="true">
+        <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+          <rect
+            className="major-scales__next-ring-track"
+            x="2"
+            y="2"
+            width="96"
+            height="36"
+            rx="8"
+            ry="8"
+          />
+          <rect
+            className="major-scales__next-ring-progress"
+            x="2"
+            y="2"
+            width="96"
+            height="36"
+            rx="8"
+            ry="8"
+            pathLength={100}
+            style={{ animationDuration: `${total}s` }}
+          />
+        </svg>
+      </span>
+      <span className="major-scales__next-label">
+        Nächste Tonleiter! <span data-testid="next-countdown">({remaining})</span>
+      </span>
+    </button>
+  );
+}
+
 // ---- Piano keyboard --------------------------------------------------------
 // Two octaves (C..B C..B). White keys are flex children; black keys are
 // absolutely positioned overlays so they sit between the right pair of whites.
@@ -373,7 +611,7 @@ export function MajorScales() {
 type PianoProps = {
   difficulty: Difficulty;
   wrongKey: string | null;
-  onClick: (note: string) => void;
+  onClick: (note: string, octave: 0 | 1) => void;
   disabled: boolean;
 };
 
@@ -399,7 +637,7 @@ function Piano({ difficulty, wrongKey, onClick, disabled }: PianoProps) {
               className={`major-scales__key major-scales__key--white${
                 isWrong ? ' major-scales__key--wrong' : ''
               }`}
-              onClick={() => onClick(name)}
+              onClick={() => onClick(name, i < 7 ? 0 : 1)}
               disabled={disabled}
               aria-label={name}
             >
@@ -427,7 +665,7 @@ function Piano({ difficulty, wrongKey, onClick, disabled }: PianoProps) {
                 isWrong ? ' major-scales__key--wrong' : ''
               }`}
               style={{ left: `calc(${leftPct}% - 3.4%)` }}
-              onClick={() => onClick(sharp)}
+              onClick={() => onClick(sharp, i < 7 ? 0 : 1)}
               disabled={disabled}
               aria-label={sharp}
             >

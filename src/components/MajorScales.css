@@ -30,41 +30,65 @@
   color: var(--fg);
 }
 
-/* ---- Mode tabs ----------------------------------------------------------- */
-.major-scales__modes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.major-scales__mode {
-  min-height: 44px;
-  padding: 8px 6px;
-  border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent);
-  background: var(--surface);
-  color: var(--fg);
-  border-radius: 10px;
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
-}
-
-.major-scales__mode--active {
-  background: var(--musik);
-  border-color: var(--musik);
-  color: var(--fund-02);
-  font-weight: 600;
-}
-
 /* ---- Controls (key, difficulty, new round) ------------------------------ */
 .major-scales__controls {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: stretch;
+}
+
+.major-scales__settings-toggle {
+  flex: 1 1 auto;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-body);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+}
+
+.major-scales__settings-label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.major-scales__settings-summary {
+  flex: 1;
+  font-size: 13px;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.major-scales__settings-chevron {
+  color: var(--muted);
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+
+.major-scales__new-round {
+  flex: 0 0 auto;
+}
+
+.major-scales__settings {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fg) 8%, transparent);
 }
 
 .major-scales__field {
@@ -134,20 +158,29 @@
 
 /* ---- Slots -------------------------------------------------------------- */
 .major-scales__slots {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  display: flex;
+  gap: 3px;
+}
+
+.major-scales__slot {
+  flex: 1 1 0;
+}
+
+.major-scales__slot--octave {
+  margin-left: 6px;
+  opacity: 0.85;
 }
 
 .major-scales__slot {
   min-height: 56px;
+  min-width: 0; /* let slots shrink so 8 fit on a phone */
   padding: 0;
   border-radius: 8px;
   border: 2px dashed color-mix(in srgb, var(--fg) 18%, transparent);
   background: var(--surface);
   color: var(--fg);
   font-family: var(--font-title);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -314,6 +347,70 @@
   font-size: 11px;
   color: var(--muted);
   text-align: center;
+}
+
+/* ---- Next-scale countdown button --------------------------------------- */
+.major-scales__next {
+  position: relative;
+  align-self: center;
+  min-width: 220px;
+  min-height: 52px;
+  padding: 0 18px;
+  border: none;
+  background: transparent;
+  color: var(--fund-02);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.major-scales__next-ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.major-scales__next-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.major-scales__next-ring-track {
+  fill: var(--musik);
+  stroke: color-mix(in srgb, var(--fund-02) 30%, transparent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The progress rect drains its dasharray over the countdown's total
+   duration. The pathLength of a rounded 96×36 rect is ~256; we set a
+   pathLength attribute so the dasharray maths is simple. */
+.major-scales__next-ring-progress {
+  fill: none;
+  stroke: var(--tech);
+  stroke-width: 3;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  animation-name: major-scales-drain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes major-scales-drain {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: 100; }
+}
+
+.major-scales__next-label {
+  position: relative;
+  z-index: 1;
 }
 
 /* ---- Desktop progressive enhancement ----------------------------------- */

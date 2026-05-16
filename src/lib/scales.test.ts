@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   KEYS,
+  ascendingOctave,
   buildMajorScale,
   enharmonicEqual,
   noteSemi,
@@ -68,6 +69,36 @@ describe('enharmonicEqual', () => {
   });
   it('considers B# and C equal', () => {
     expect(enharmonicEqual('B#', 'C')).toBe(true);
+  });
+});
+
+describe('ascendingOctave', () => {
+  it('keeps C major in the same octave for slots 0..6 and bumps the bookend', () => {
+    // C major: C D E F G A B → no wrap, all octave 0; closing C at i=7 → 1.
+    for (let i = 0; i < 7; i++) {
+      expect(ascendingOctave(i, 'C')).toBe(0);
+    }
+    expect(ascendingOctave(7, 'C')).toBe(1);
+  });
+
+  it('bumps the octave once the scale wraps past the alphabet (G major)', () => {
+    // G major: G A B (octave 0) C D E F# (octave 1) + closing G (octave 1)
+    expect(ascendingOctave(0, 'G')).toBe(0); // G
+    expect(ascendingOctave(1, 'G')).toBe(0); // A
+    expect(ascendingOctave(2, 'G')).toBe(0); // B
+    expect(ascendingOctave(3, 'G')).toBe(1); // C — wraps
+    expect(ascendingOctave(4, 'G')).toBe(1); // D
+    expect(ascendingOctave(5, 'G')).toBe(1); // E
+    expect(ascendingOctave(6, 'G')).toBe(1); // F#
+    expect(ascendingOctave(7, 'G')).toBe(1); // closing G
+  });
+
+  it('bumps right after the tonic for B major (only B is below C)', () => {
+    // B major: B (octave 0) C# D# E F# G# A# (octave 1) + closing B (1)
+    expect(ascendingOctave(0, 'B')).toBe(0);
+    for (let i = 1; i <= 7; i++) {
+      expect(ascendingOctave(i, 'B')).toBe(1);
+    }
   });
 });
 

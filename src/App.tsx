@@ -168,7 +168,7 @@ function LernenMenu({ onOpenMajorScales }: LernenMenuProps) {
             onClick={onOpenMajorScales}
           >
             <span className="lernen-menu__tile-title">Dur-Tonleitern</span>
-            <span className="lernen-menu__tile-sub">Major Scales üben — 3 Modi</span>
+            <span className="lernen-menu__tile-sub">Major Scales üben</span>
           </button>
         </li>
       </ul>

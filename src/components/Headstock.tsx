@@ -1,3 +1,4 @@
+import { playFrequency } from '../lib/tone';
 import type { GuitarString, Tuning } from '../lib/tuning';
 import './Headstock.css';
 
@@ -124,7 +125,10 @@ function StringButton({ string, active, pulse, disabled, onSelect }: ButtonProps
       aria-label={`${string.name}${string.octave} auswählen`}
       aria-pressed={active}
       disabled={disabled && !active}
-      onClick={() => onSelect(string)}
+      onClick={() => {
+        playFrequency(string.freq);
+        onSelect(string);
+      }}
     >
       {string.name}
     </button>
