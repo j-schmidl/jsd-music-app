@@ -10,6 +10,17 @@
   padding: 4px 0 16px;
 }
 
+/* Bass: all tuners are on one side, so the string buttons live in a single
+   left column next to the in-line headstock graphic. */
+.headstock--bass {
+  grid-template-columns: 48px 1fr;
+  max-width: 260px;
+}
+
+.headstock--bass .headstock__column--left {
+  gap: 14px;
+}
+
 .headstock__column {
   display: flex;
   flex-direction: column;

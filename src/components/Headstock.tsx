@@ -16,15 +16,17 @@ export function Headstock({ tuning, mode, target, detected, onSelect }: Props) {
   // mirror that: the left column holds the lower half (highest pitch on top,
   // descending), the right column the upper half (ascending).
   const s = tuning.strings;
-  const mid = Math.ceil(s.length / 2);
+  // Basses get an in-line headstock graphic (all tuners on one side, the
+  // classic P-/J-bass look) instead of the symmetric guitar headstock — so
+  // all bass string buttons sit in the left column to match the pegs. A
+  // guitar splits its strings across both columns.
+  const isBass = tuning.id.startsWith('bass-');
+  const mid = isBass ? s.length : Math.ceil(s.length / 2);
   const left = s.slice(0, mid).reverse();
   const right = s.slice(mid);
-  // Basses get an in-line headstock graphic (all tuners on one side, the
-  // classic P-/J-bass look) instead of the symmetric guitar headstock.
-  const isBass = tuning.id.startsWith('bass-');
 
   return (
-    <div className="headstock">
+    <div className={`headstock${isBass ? ' headstock--bass' : ''}`}>
       <div className="headstock__column headstock__column--left">
         {left.map((s) => (
           <StringButton
@@ -44,18 +46,20 @@ export function Headstock({ tuning, mode, target, detected, onSelect }: Props) {
         <GuitarHeadstockSvg />
       )}
 
-      <div className="headstock__column headstock__column--right">
-        {right.map((s) => (
-          <StringButton
-            key={s.id}
-            string={s}
-            active={target?.id === s.id}
-            pulse={mode === 'manual' && target?.id === s.id && detected?.id === s.id}
-            disabled={mode === 'auto'}
-            onSelect={onSelect}
-          />
-        ))}
-      </div>
+      {right.length > 0 && (
+        <div className="headstock__column headstock__column--right">
+          {right.map((s) => (
+            <StringButton
+              key={s.id}
+              string={s}
+              active={target?.id === s.id}
+              pulse={mode === 'manual' && target?.id === s.id && detected?.id === s.id}
+              disabled={mode === 'auto'}
+              onSelect={onSelect}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
