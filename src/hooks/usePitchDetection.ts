@@ -22,7 +22,9 @@ export type PitchState = {
 
 const BUFFER_SIZE = 2048;
 const CLARITY_THRESHOLD = 0.9;
-const MIN_FREQ = 60;
+// Reaches down to ~C0 (16 Hz) so the chromatic tuner and bass tunings cover
+// the lowest strings (a 5-string bass low B is ~31 Hz).
+const MIN_FREQ = 16;
 const MAX_FREQ = 1200;
 
 export function usePitchDetection(): PitchState {

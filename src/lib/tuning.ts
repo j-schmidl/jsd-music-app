@@ -117,6 +117,16 @@ export const TUNINGS: readonly Tuning[] = [
     label: 'Open G',
     strings: [s('D', 2), s('G', 2), s('D', 3), s('G', 3), s('B', 3), s('D', 4)],
   },
+  {
+    id: 'bass-4',
+    label: 'Bass (4-saitig)',
+    strings: [s('E', 1), s('A', 1), s('D', 2), s('G', 2)],
+  },
+  {
+    id: 'bass-5',
+    label: 'Bass (5-saitig)',
+    strings: [s('B', 0), s('E', 1), s('A', 1), s('D', 2), s('G', 2)],
+  },
 ] as const;
 
 /** The classic 6-string standard tuning. Kept as a named export for callers

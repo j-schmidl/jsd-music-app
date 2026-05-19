@@ -162,6 +162,20 @@ test.describe('tuning selector', () => {
     await expect(page.getByTestId('tuning-option-drop-d')).toBeVisible();
     await expect(page.getByTestId('tuning-option-dadgad')).toBeVisible();
     await expect(page.getByTestId('tuning-option-open-g')).toBeVisible();
+    await expect(page.getByTestId('tuning-option-bass-4')).toBeVisible();
+    await expect(page.getByTestId('tuning-option-bass-5')).toBeVisible();
+  });
+
+  test('selecting the 4-string bass shows its four strings on the headstock', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('tuning-selector').click();
+    await page.getByTestId('tuning-option-bass-4').click();
+    // Bass strings E1 A1 D2 G2 — and no fifth/sixth guitar string.
+    for (const id of ['E1', 'A1', 'D2', 'G2']) {
+      await expect(page.getByTestId(`string-${id}`)).toBeVisible();
+    }
+    await expect(page.getByTestId('string-B3')).toHaveCount(0);
+    await expect(page.getByTestId('string-E4')).toHaveCount(0);
   });
 
   test('selecting Drop D updates the trigger label and the bottom-left string label', async ({ page }) => {

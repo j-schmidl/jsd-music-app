@@ -11,13 +11,14 @@ type Props = {
 };
 
 export function Headstock({ tuning, mode, target, detected, onSelect }: Props) {
-  // Tuning strings are ordered low → high (E2, A2, D3, G3, B3, E4 for standard).
-  // Headstock columns mirror that visually: left column (top→bottom) shows
-  // 4th, 5th, 6th strings (D, A, low E) and right column shows 3rd, 2nd, 1st
-  // (G, B, high E). Index 0 is the lowest pitch, index 5 the highest.
+  // Tuning strings are ordered low → high (E2, A2, D3, G3, B3, E4 for a
+  // standard guitar; basses have 4 or 5 strings). The two headstock columns
+  // mirror that: the left column holds the lower half (highest pitch on top,
+  // descending), the right column the upper half (ascending).
   const s = tuning.strings;
-  const left = [s[2], s[1], s[0]];
-  const right = [s[3], s[4], s[5]];
+  const mid = Math.ceil(s.length / 2);
+  const left = s.slice(0, mid).reverse();
+  const right = s.slice(mid);
 
   return (
     <div className="headstock">

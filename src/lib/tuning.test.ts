@@ -91,12 +91,18 @@ describe('TUNINGS', () => {
     expect(TUNINGS[0].strings).toEqual(STRINGS);
   });
 
-  it('every preset has six strings ordered by ascending frequency', () => {
+  it('every preset has its strings ordered by ascending frequency', () => {
     for (const t of TUNINGS) {
-      expect(t.strings).toHaveLength(6);
       for (let i = 1; i < t.strings.length; i++) {
         expect(t.strings[i].freq).toBeGreaterThan(t.strings[i - 1].freq);
       }
+    }
+  });
+
+  it('guitar presets have six strings, bass presets four or five', () => {
+    for (const t of TUNINGS) {
+      const expected = t.id.startsWith('bass-') ? [4, 5] : [6];
+      expect(expected).toContain(t.strings.length);
     }
   });
 
@@ -109,6 +115,18 @@ describe('TUNINGS', () => {
   it('DADGAD strings are D2 A2 D3 G3 A3 D4', () => {
     const dadgad = TUNINGS.find((t) => t.id === 'dadgad')!;
     expect(dadgad.strings.map((s) => s.id)).toEqual(['D2', 'A2', 'D3', 'G3', 'A3', 'D4']);
+  });
+
+  it('4-string bass is E1 A1 D2 G2', () => {
+    const bass = TUNINGS.find((t) => t.id === 'bass-4')!;
+    expect(bass.strings.map((s) => s.id)).toEqual(['E1', 'A1', 'D2', 'G2']);
+  });
+
+  it('5-string bass adds a low B0 below the 4-string set', () => {
+    const bass = TUNINGS.find((t) => t.id === 'bass-5')!;
+    expect(bass.strings.map((s) => s.id)).toEqual(['B0', 'E1', 'A1', 'D2', 'G2']);
+    // The low B sits around 31 Hz — below the old 60 Hz detection floor.
+    expect(bass.strings[0].freq).toBeLessThan(35);
   });
 });
 
@@ -148,5 +166,17 @@ describe('nearestNote (chromatic)', () => {
     const n = nearestNote(739.99);
     expect(n.name).toBe('F#');
     expect(n.octave).toBe(5);
+  });
+
+  it('detects low notes below C2 (C1 ≈ 32.7 Hz)', () => {
+    const n = nearestNote(32.7);
+    expect(n.name).toBe('C');
+    expect(n.octave).toBe(1);
+  });
+
+  it('detects a 5-string bass low B (B0 ≈ 30.87 Hz)', () => {
+    const n = nearestNote(30.87);
+    expect(n.name).toBe('B');
+    expect(n.octave).toBe(0);
   });
 });
