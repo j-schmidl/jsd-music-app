@@ -4,7 +4,9 @@ Durable context for future Claude sessions. Keep this short and stable; edit onl
 
 ## Project
 
-`jsd-music-app` is a **music learning web app**. v1 is a **guitar tuner** as the landing page and first goodie — it's what a visitor sees when they open the site. The bottom navigation (Songs / Tools / Stimmen / Lernen / Einstellungen) is a placeholder for future learning features the user will build out. Only the **Stimmen** (tuner) tab is implemented for now. The owner uses this app themselves and is also the primary developer.
+`jsd-music-app` is a **music learning web app**. v1 is a **guitar tuner** as the landing page and first goodie — it's what a visitor sees when they open the site. The bottom navigation is **Stimmen** (tuner) / **Metronom** / **Lernen**, all implemented; the **Stimmen** tab stays first and is the landing page. The owner uses this app themselves and is also the primary developer.
+
+The **Metronom** tab is a click-track metronome plus a two-mode "BPM finden" tool: tap-tempo, and microphone tempo detection. Tempo logic is pure and lives in `src/lib/bpm.ts` (tap averaging, autocorrelation of an onset envelope, octave folding) and `src/lib/onset.ts` (FFT + spectral-flux onset envelope — the *same* code the live mic detector runs is what the tests validate). Playback uses a Web Audio lookahead scheduler in `src/hooks/useMetronome.ts`; mic detection is in `src/hooks/useBpmDetector.ts`. The detector is validated offline against real audio: short mono WAV excerpts of the owner's own tracks/loops live in `tests/fixtures/audio/` (named `<bpm>bpm-<timbre>.wav`) and `src/lib/onset.test.ts` decodes them and asserts the detected tempo to within ±3 BPM. The `.github/workflows/metronome.yml` CI job re-runs this (plus build + e2e) on any push that touches the feature.
 
 ## Stack
 

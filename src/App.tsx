@@ -6,6 +6,7 @@ import { ChordGame } from './components/ChordGame';
 import { CustomTuningEditor } from './components/CustomTuningEditor';
 import { Headstock } from './components/Headstock';
 import { MajorScales } from './components/MajorScales';
+import { Metronome } from './components/Metronome';
 import { MicButton } from './components/MicButton';
 import { MinorScales } from './components/MinorScales';
 import { ThemeToggle } from './components/ThemeToggle';
@@ -109,6 +110,7 @@ export default function App() {
   };
 
   const isTuner = activeTab === 'stimmen';
+  const isMetronom = activeTab === 'metronom';
   const isLernen = activeTab === 'lernen';
 
   return (
@@ -198,6 +200,7 @@ export default function App() {
             )}
           </>
         )}
+        {isMetronom && <Metronome />}
         {isLernen && lernenScreen === 'menu' && (
           <LernenMenu onOpen={setLernenScreen} />
         )}

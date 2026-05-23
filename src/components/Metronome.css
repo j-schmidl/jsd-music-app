@@ -1,0 +1,365 @@
+.metronome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 16px 24px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* ── Tempo readout ───────────────────────────────────────────────── */
+.metronome__readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.metronome__bpm {
+  font-family: var(--font-title);
+  font-size: 88px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--musik);
+  font-variant-numeric: tabular-nums;
+}
+
+.metronome__unit {
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Beat indicator ──────────────────────────────────────────────── */
+.metronome__beats {
+  display: flex;
+  gap: 12px;
+  min-height: 18px;
+  align-items: center;
+}
+
+.metronome__beat {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--fg) 18%, transparent);
+  transition: transform 60ms ease, background-color 60ms ease;
+}
+
+.metronome__beat--accent {
+  background: color-mix(in srgb, var(--fg) 30%, transparent);
+}
+
+.metronome__beat--on {
+  background: var(--musik);
+  transform: scale(1.5);
+}
+
+.metronome__beat--accent.metronome__beat--on {
+  background: var(--tech);
+}
+
+/* ── Tempo controls ──────────────────────────────────────────────── */
+.metronome__controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.metronome__step {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--fg) 16%, transparent);
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.metronome__step:active {
+  background: var(--surface-2);
+  border-color: var(--musik);
+}
+
+.metronome__slider {
+  flex: 1 1 auto;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--fg) 14%, transparent);
+  outline: none;
+}
+
+.metronome__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--musik);
+  cursor: pointer;
+  border: 3px solid var(--bg);
+}
+
+.metronome__slider::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  background: var(--musik);
+  cursor: pointer;
+}
+
+/* ── Play / stop ─────────────────────────────────────────────────── */
+.metronome__play {
+  width: 100%;
+  min-height: 56px;
+  border: none;
+  border-radius: 14px;
+  background: var(--musik);
+  color: var(--fund-02);
+  font-family: var(--font-title);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 120ms ease, background-color 120ms ease;
+}
+
+.metronome__play--on {
+  background: var(--surface-2);
+  color: var(--fg);
+  border: 1px solid var(--musik);
+}
+
+.metronome__play:active {
+  filter: brightness(0.92);
+}
+
+/* ── Time signature ──────────────────────────────────────────────── */
+.metronome__meter {
+  display: flex;
+  gap: 8px;
+}
+
+.metronome__meter-btn {
+  min-width: 48px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--fg) 14%, transparent);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.metronome__meter-btn--active {
+  color: var(--musik);
+  border-color: var(--musik);
+}
+
+/* ── BPM finder ──────────────────────────────────────────────────── */
+.metronome__finder {
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 20px;
+  border-top: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.metronome__finder-title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.metronome__finder-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  width: 100%;
+  max-width: 260px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.metronome__finder-tab {
+  min-height: 40px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.metronome__finder-tab--active {
+  background: var(--surface-2);
+  color: var(--musik);
+}
+
+/* ── Tap panel ───────────────────────────────────────────────────── */
+.metronome__tap-panel,
+.metronome__mic-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.metronome__tap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 2px solid var(--musik);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 80ms ease, background-color 80ms ease;
+}
+
+.metronome__tap:active {
+  transform: scale(0.96);
+  background: var(--surface-2);
+}
+
+.metronome__tap-value {
+  font-family: var(--font-title);
+  font-size: 44px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--musik);
+}
+
+.metronome__tap-hint {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── Mic panel ───────────────────────────────────────────────────── */
+.metronome__mic {
+  min-width: 160px;
+  min-height: 52px;
+  padding: 0 24px;
+  border-radius: 14px;
+  border: 1px solid var(--musik);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-title);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.metronome__mic--on {
+  background: var(--musik);
+  color: var(--fund-02);
+}
+
+.metronome__mic-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  text-align: center;
+}
+
+.metronome__mic-bpm {
+  font-family: var(--font-title);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--musik);
+  font-variant-numeric: tabular-nums;
+}
+
+.metronome__mic-hint,
+.metronome__mic-error {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.metronome__mic-error {
+  color: color-mix(in srgb, var(--fg) 70%, red);
+}
+
+.metronome__mic-conf {
+  display: block;
+  width: 140px;
+  height: 5px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--fg) 12%, transparent);
+  overflow: hidden;
+}
+
+.metronome__mic-conf-bar {
+  display: block;
+  height: 100%;
+  background: var(--tech);
+  transition: width 200ms ease;
+}
+
+/* ── Shared finder buttons ───────────────────────────────────────── */
+.metronome__finder-reset,
+.metronome__finder-apply {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--fg) 16%, transparent);
+  background: transparent;
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.metronome__finder-apply {
+  border-color: var(--musik);
+  color: var(--musik);
+}
+
+@media (min-width: 768px) {
+  .metronome__bpm {
+    font-size: 104px;
+  }
+}
