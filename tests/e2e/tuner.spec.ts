@@ -216,3 +216,37 @@ test.describe('tuner indicator', () => {
     await expect(page.getByTestId('mic-picker-menu')).toBeHidden();
   });
 });
+
+// Headless Chromium can't feed real audio, so these drive the tuner with the
+// built-in `?demo` signal (a synthetic tone oscillating ±30 cents around A2).
+// They exercise the live display path — including the bottom region that the
+// silence/restart affordance now shares — without needing a microphone.
+test.describe('tuner live display (demo signal)', () => {
+  test('detects the demo note and moves the needle as the pitch drifts', async ({ page }) => {
+    await page.goto('/?demo');
+
+    const tuner = page.getByTestId('tuner');
+    await expect(tuner).toHaveAttribute('data-state', /(detected|in-tune)/, { timeout: 5000 });
+    // The demo tone sits on A2, so the auto-detected string is the A string.
+    await expect(page.getByTestId('tuner-note')).toContainText('A');
+
+    // The needle transform is recomputed every frame from the cents offset, so
+    // it should visibly change as the demo pitch drifts.
+    const needle = page.getByTestId('tuner-needle');
+    const first = await needle.evaluate((el) => (el as HTMLElement).style.transform);
+    await page.waitForTimeout(400);
+    const second = await needle.evaluate((el) => (el as HTMLElement).style.transform);
+    expect(second).not.toBe(first);
+  });
+
+  test('never shows the silence-restart affordance while a signal is present', async ({ page }) => {
+    await page.goto('/?demo');
+    await expect(page.getByTestId('tuner')).toHaveAttribute('data-state', /(detected|in-tune)/, {
+      timeout: 5000,
+    });
+    // The restart button and "Kein Signal" message belong to the stalled state
+    // only — they must not leak into a healthy, detecting tuner.
+    await expect(page.getByTestId('tuner-restart')).toHaveCount(0);
+    await expect(page.getByTestId('tuner-stalled')).toHaveCount(0);
+  });
+});

@@ -1,5 +1,6 @@
 import { PitchDetector } from 'pitchy';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { rms, smoothPitch } from '../lib/pitch';
 
 type Status = 'idle' | 'starting' | 'listening' | 'error';
 
@@ -27,9 +28,11 @@ export type PitchState = {
 
 const BUFFER_SIZE = 2048;
 const CLARITY_THRESHOLD = 0.9;
-// Reaches down to ~C0 (16 Hz) so the chromatic tuner and bass tunings cover
-// the lowest strings (a 5-string bass low B is ~31 Hz).
-const MIN_FREQ = 16;
+// Default low-frequency floor. Callers pass a tuning-aware `minFreq` (a few
+// semitones below the lowest string) so phantom sub-bass detected in the noise
+// floor — which clarity alone does not reject — never reaches the display. This
+// fallback only applies if no caller value is given. See lib/pitch.lowFreqFloor.
+const DEFAULT_MIN_FREQ = 16;
 const MAX_FREQ = 1200;
 // Below this input RMS the buffer is effectively digital silence: a live mic
 // always sits above its noise floor, so this only trips when the pipeline is
@@ -37,15 +40,8 @@ const MAX_FREQ = 1200;
 const SILENCE_RMS = 1e-4;
 const STALL_MS = 5000; // show the restart button after this much silence
 const AUTO_RESTART_MS = 10000; // auto-restart the capture chain after this much
-// Light low-pass on the reported pitch: each frame eases this fraction of the
-// way toward the raw reading (1 = no smoothing). ~0.25 takes the edge off the
-// per-frame jitter without adding noticeable lag.
-const SMOOTHING = 0.25;
-// Jumps larger than this (in cents) are treated as a new note rather than
-// jitter, so switching strings snaps instantly instead of gliding.
-const SNAP_CENTS = 80;
 
-export function usePitchDetection(): PitchState {
+export function usePitchDetection(options: { minFreq?: number } = {}): PitchState {
   const [status, setStatus] = useState<Status>('idle');
   const [frequency, setFrequency] = useState<number | null>(null);
   const [clarity, setClarity] = useState(0);
@@ -63,6 +59,12 @@ export function usePitchDetection(): PitchState {
   const stalledRef = useRef(false);
   // Last smoothed pitch, fed back into the EMA each frame (null between notes).
   const smoothedFreqRef = useRef<number | null>(null);
+  // Tuning-aware low-frequency floor, mirrored into a ref so the rAF loop picks
+  // up tuning changes without restarting the stream.
+  const minFreqRef = useRef(options.minFreq ?? DEFAULT_MIN_FREQ);
+  useEffect(() => {
+    minFreqRef.current = options.minFreq ?? DEFAULT_MIN_FREQ;
+  }, [options.minFreq]);
   // The current device, mirrored into a ref so the rAF loop can restart on the
   // same input without depending on (stale) closure state.
   const activeDeviceIdRef = useRef<string | null>(null);
@@ -148,9 +150,8 @@ export function usePitchDetection(): PitchState {
         setActiveDeviceId(resolvedDeviceId);
         activeDeviceIdRef.current = resolvedDeviceId;
 
-        const AudioCtx =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) throw new Error('Web Audio not supported');
         const ctx = new AudioCtx();
         audioCtxRef.current = ctx;
 
@@ -175,11 +176,8 @@ export function usePitchDetection(): PitchState {
           // Watchdog: a dead pipeline returns digital silence (RMS ~ 0) while a
           // live mic always sits above its noise floor. Track how long we have
           // been silent and escalate — but never while genuinely receiving sound.
-          let sumSq = 0;
-          for (let i = 0; i < buffer.length; i++) sumSq += buffer[i] * buffer[i];
-          const rms = Math.sqrt(sumSq / buffer.length);
           const now = performance.now();
-          if (rms > SILENCE_RMS) {
+          if (rms(buffer) > SILENCE_RMS) {
             clearStall();
           } else {
             if (silentSinceRef.current === null) silentSinceRef.current = now;
@@ -196,12 +194,8 @@ export function usePitchDetection(): PitchState {
           }
 
           const [freq, clar] = detector.findPitch(buffer, ctx.sampleRate);
-          if (clar > CLARITY_THRESHOLD && freq >= MIN_FREQ && freq <= MAX_FREQ) {
-            // Ease toward the raw reading to take the jitter off the needle, but
-            // snap straight to it on a large jump so changing strings is instant.
-            const prev = smoothedFreqRef.current;
-            const isNewNote = prev === null || Math.abs(1200 * Math.log2(freq / prev)) > SNAP_CENTS;
-            const next = isNewNote ? freq : prev + (freq - prev) * SMOOTHING;
+          if (clar > CLARITY_THRESHOLD && freq >= minFreqRef.current && freq <= MAX_FREQ) {
+            const next = smoothPitch(smoothedFreqRef.current, freq);
             smoothedFreqRef.current = next;
             setFrequency(next);
             setClarity(clar);
