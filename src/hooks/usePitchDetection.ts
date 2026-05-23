@@ -37,6 +37,13 @@ const MAX_FREQ = 1200;
 const SILENCE_RMS = 1e-4;
 const STALL_MS = 5000; // show the restart button after this much silence
 const AUTO_RESTART_MS = 10000; // auto-restart the capture chain after this much
+// Light low-pass on the reported pitch: each frame eases this fraction of the
+// way toward the raw reading (1 = no smoothing). ~0.25 takes the edge off the
+// per-frame jitter without adding noticeable lag.
+const SMOOTHING = 0.25;
+// Jumps larger than this (in cents) are treated as a new note rather than
+// jitter, so switching strings snaps instantly instead of gliding.
+const SNAP_CENTS = 80;
 
 export function usePitchDetection(): PitchState {
   const [status, setStatus] = useState<Status>('idle');
@@ -54,6 +61,8 @@ export function usePitchDetection(): PitchState {
   // when the current run of silence began (null while there is signal).
   const silentSinceRef = useRef<number | null>(null);
   const stalledRef = useRef(false);
+  // Last smoothed pitch, fed back into the EMA each frame (null between notes).
+  const smoothedFreqRef = useRef<number | null>(null);
   // The current device, mirrored into a ref so the rAF loop can restart on the
   // same input without depending on (stale) closure state.
   const activeDeviceIdRef = useRef<string | null>(null);
@@ -97,6 +106,7 @@ export function usePitchDetection(): PitchState {
     audioCtxRef.current?.close().catch(() => undefined);
     audioCtxRef.current = null;
     clearStall();
+    smoothedFreqRef.current = null;
     setStatus('idle');
     setFrequency(null);
     setClarity(0);
@@ -115,6 +125,7 @@ export function usePitchDetection(): PitchState {
       }
 
       clearStall();
+      smoothedFreqRef.current = null;
       setStatus('starting');
       setError(null);
       try {
@@ -186,7 +197,13 @@ export function usePitchDetection(): PitchState {
 
           const [freq, clar] = detector.findPitch(buffer, ctx.sampleRate);
           if (clar > CLARITY_THRESHOLD && freq >= MIN_FREQ && freq <= MAX_FREQ) {
-            setFrequency(freq);
+            // Ease toward the raw reading to take the jitter off the needle, but
+            // snap straight to it on a large jump so changing strings is instant.
+            const prev = smoothedFreqRef.current;
+            const isNewNote = prev === null || Math.abs(1200 * Math.log2(freq / prev)) > SNAP_CENTS;
+            const next = isNewNote ? freq : prev + (freq - prev) * SMOOTHING;
+            smoothedFreqRef.current = next;
+            setFrequency(next);
             setClarity(clar);
           } else {
             setClarity(clar);
