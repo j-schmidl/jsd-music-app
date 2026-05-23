@@ -2,6 +2,8 @@
 
 Durable context for future Claude sessions. Keep this short and stable; edit only when project-level intent changes, not per-task.
 
+A high-level structural map lives in [ARCHITECTURE.md](ARCHITECTURE.md). **Whenever you change the architecture** — add a feature/tab/game, move logic between the `lib/` / `hooks/` / `components/` layers, change how audio is captured or scheduled, or change how top-level state is owned — **update `ARCHITECTURE.md` in the same change** so it stays accurate.
+
 ## Project
 
 `jsd-music-app` is a **music learning web app**. v1 is a **guitar tuner** as the landing page and first goodie — it's what a visitor sees when they open the site. The bottom navigation is **Stimmen** (tuner) / **Metronom** / **Lernen**, all implemented; the **Stimmen** tab stays first and is the landing page. The owner uses this app themselves and is also the primary developer.
