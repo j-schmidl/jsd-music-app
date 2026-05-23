@@ -17,6 +17,7 @@ import { WaveBackground } from './components/WaveBackground';
 import { Wordmark } from './components/Wordmark';
 import { usePitchDetection } from './hooks/usePitchDetection';
 import { useTheme } from './hooks/useTheme';
+import { CHROMATIC_MIN_FREQ, lowFreqFloor } from './lib/pitch';
 import {
   CUSTOM_TUNING_ID,
   TUNINGS,
@@ -41,7 +42,14 @@ export default function App() {
   const [pinned, setPinned] = useState<GuitarString | null>(null);
   const [activeTab, setActiveTab] = useState('stimmen');
   const [lernenScreen, setLernenScreen] = useState<LernenScreen>('menu');
-  const pitch = usePitchDetection();
+  // Reject phantom sub-bass the detector finds in near-silence by flooring
+  // detection a few semitones below the lowest string of the active tuning
+  // (chromatic mode has no fixed string, so it uses a fixed low floor).
+  const minFreq =
+    tunerMode === 'chromatic'
+      ? CHROMATIC_MIN_FREQ
+      : lowFreqFloor(Math.min(...tuning.strings.map((s) => s.freq)));
+  const pitch = usePitchDetection({ minFreq });
   const demoFrequency = useDemoFrequency();
 
   const effectiveFrequency = demoFrequency ?? pitch.frequency;
