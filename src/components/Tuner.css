@@ -237,3 +237,48 @@
   text-align: center;
   margin: 0;
 }
+
+/* Shown when the mic pipeline goes silent/dead — a manual escape hatch that
+   appears at 5s of silence; the hook auto-restarts shortly after. */
+.tuner__stalled {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.tuner__stalled-msg {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: color-mix(in srgb, var(--fg) 70%, transparent);
+}
+
+.tuner__restart {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bg);
+  background: var(--musik);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 24px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: filter 120ms ease, transform 120ms ease;
+}
+
+.tuner__restart:hover {
+  filter: brightness(1.1);
+}
+
+.tuner__restart:active {
+  transform: scale(0.98);
+}
+
+.tuner__restart-icon {
+  font-size: 18px;
+  line-height: 1;
+}
