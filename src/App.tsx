@@ -182,6 +182,8 @@ export default function App() {
               target={target}
               listening={pitch.status === 'listening' || demoFrequency !== null}
               error={pitch.error}
+              stalled={pitch.stalled && demoFrequency === null}
+              onRestart={() => void pitch.start(pitch.activeDeviceId ?? undefined)}
               onStart={() => void pitch.start()}
               prompt={
                 isChromatic
