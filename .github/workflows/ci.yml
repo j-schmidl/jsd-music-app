@@ -18,7 +18,7 @@ jobs:
     name: Lint, type-check, unit tests & build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -41,7 +41,7 @@ jobs:
     name: Playwright E2E (mobile-chromium)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -58,7 +58,7 @@ jobs:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # Full history so gitleaks can scan all commits, not just the tip.
           fetch-depth: 0
@@ -71,9 +71,9 @@ jobs:
     name: Vulnerability scan (trivy)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run Trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.29.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
           scanners: vuln,secret,misconfig
