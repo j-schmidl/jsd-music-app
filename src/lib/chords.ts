@@ -77,6 +77,32 @@ export function chordTypeById(id: string): ChordType | undefined {
   return CHORD_TYPES.find((c) => c.id === id);
 }
 
+// Difficulty tiers for the chord game. Each tier limits which chord types can
+// turn up so beginners aren't thrown the spicy ones.
+//   leicht  — just Dur & Moll, the two everyone knows.
+//   mittel  — the typical pop/rock vocabulary (sus + sevenths), but no
+//             verminderte/übermäßige chords (altered fifths get confusing).
+//   schwer  — the full set, including dim/aug/dim7.
+export type Difficulty = 'leicht' | 'mittel' | 'schwer';
+
+export const DIFFICULTIES: readonly { id: Difficulty; label: string; hint: string }[] = [
+  { id: 'leicht', label: 'Leicht', hint: 'nur Dur & Moll' },
+  { id: 'mittel', label: 'Mittel', hint: 'typische Akkorde, ohne verm./übermäßig' },
+  { id: 'schwer', label: 'Schwer', hint: 'alle Akkorde' },
+];
+
+const DIFFICULTY_TYPE_IDS: Record<Difficulty, readonly string[]> = {
+  leicht: ['major', 'minor'],
+  mittel: ['major', 'minor', 'sus2', 'sus4', 'maj7', 'dom7', 'min7'],
+  schwer: CHORD_TYPES.map((c) => c.id),
+};
+
+// The chord types available at a given difficulty, in CHORD_TYPES order.
+export function chordTypesFor(difficulty: Difficulty): ChordType[] {
+  const ids = DIFFICULTY_TYPE_IDS[difficulty];
+  return CHORD_TYPES.filter((c) => ids.includes(c.id));
+}
+
 // Spells one chord tone: pick the letter `letterStep` above the root, then add
 // the accidental needed to reach `semitones` above the root's pitch.
 function spellTone(root: string, tone: Tone): string {
