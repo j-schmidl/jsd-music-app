@@ -193,7 +193,7 @@ export default function App() {
               frequency={effectiveFrequency}
               target={target}
               listening={pitch.status === 'listening' || demoFrequency !== null}
-              error={pitch.error}
+              error={demoFrequency !== null ? null : pitch.error}
               stalled={pitch.stalled && demoFrequency === null}
               onRestart={() => void pitch.start(pitch.activeDeviceId ?? undefined)}
               onStart={() => void pitch.start()}
