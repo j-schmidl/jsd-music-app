@@ -8,7 +8,7 @@ A high-level structural map lives in [ARCHITECTURE.md](ARCHITECTURE.md). **Whene
 
 `jsd-music-app` is a **music learning web app**. v1 is a **guitar tuner** as the landing page and first goodie — it's what a visitor sees when they open the site. The bottom navigation is **Stimmen** (tuner) / **Metronom** / **Lernen**, all implemented; the **Stimmen** tab stays first and is the landing page. The owner uses this app themselves and is also the primary developer.
 
-The **Metronom** tab is a click-track metronome plus a two-mode "BPM finden" tool: tap-tempo, and microphone tempo detection. Tempo logic is pure and lives in `src/lib/bpm.ts` (tap averaging, autocorrelation of an onset envelope, octave folding) and `src/lib/onset.ts` (FFT + spectral-flux onset envelope — the *same* code the live mic detector runs is what the tests validate). Playback uses a Web Audio lookahead scheduler in `src/hooks/useMetronome.ts`; mic detection is in `src/hooks/useBpmDetector.ts`. The detector is validated offline against real audio: short mono WAV excerpts of the owner's own tracks/loops live in `tests/fixtures/audio/` (named `<bpm>bpm-<timbre>.wav`) and `src/lib/onset.test.ts` decodes them and asserts the detected tempo to within ±3 BPM. A **pre-commit hook** (`scripts/git-hooks/pre-commit`, wired via `core.hooksPath` — set automatically by the `prepare` npm script) type-checks and runs the unit suite whenever a commit touches the metronome feature; bypass with `git commit --no-verify`.
+The **Metronom** tab is a click-track metronome plus a two-mode "BPM finden" tool: tap-tempo, and microphone tempo detection. Tempo logic is pure and lives in `src/lib/bpm.ts` (tap averaging, autocorrelation of an onset envelope, octave folding) and `src/lib/onset.ts` (FFT + spectral-flux onset envelope — the _same_ code the live mic detector runs is what the tests validate). Playback uses a Web Audio lookahead scheduler in `src/hooks/useMetronome.ts`; mic detection is in `src/hooks/useBpmDetector.ts`. The detector is validated offline against real audio: short mono WAV excerpts of the owner's own tracks/loops live in `tests/fixtures/audio/` (named `<bpm>bpm-<timbre>.wav`) and `src/lib/onset.test.ts` decodes them and asserts the detected tempo to within ±3 BPM. A **pre-commit hook** (`scripts/git-hooks/pre-commit`, wired via `core.hooksPath` — set automatically by the `prepare` npm script) runs a Prettier format-check (`npm run format:check`) and ESLint on **every** commit, and additionally runs the unit suite whenever a commit touches the metronome feature; bypass with `git commit --no-verify`.
 
 ## Stack
 
@@ -27,6 +27,7 @@ The **Metronom** tab is a click-track metronome plus a two-mode "BPM finden" too
 Follows the **jsd Markensystem** style guide (PDF lives in `~/Downloads/260413_jannis_styleguide_final.pdf`). This app is in the **Musik** cluster (Welle zustand): deep purple Fundament 02 dark background, purple-blue Musik accent `#92A0F8` as the primary UI color. Brand tokens live in `src/App.css` as CSS custom properties — do not hardcode hex values in components.
 
 Key tokens (reference only — edit `src/App.css`, not here):
+
 - `--fund-01 #505078`, `--fund-02 #1E0032`, `--fund-light #EBF0EB`
 - `--tech #8CEBCD` (in-tune feedback), `--musik #92A0F8` (primary accent), `--kultur #DCFF3A`
 
@@ -68,6 +69,9 @@ npm run preview    # Preview production build
 npm test           # Vitest unit tests (watch mode)
 npm run test:run   # Vitest single run
 npm run test:e2e   # Playwright E2E tests (requires dev server already running, or uses webServer config)
+npm run lint       # ESLint over the repo
+npm run format     # Prettier — rewrite all files in place
+npm run format:check  # Prettier — verify formatting without writing (used by the pre-commit hook)
 ```
 
 Mic access on iOS Safari requires HTTPS. For phone testing over the local network, use `npm run dev -- --host` and access via the laptop's local IP (you'll need to accept a self-signed cert).
@@ -79,3 +83,4 @@ Mic access on iOS Safari requires HTTPS. For phone testing over the local networ
 - Component files stay focused — if a component exceeds ~200 lines, consider splitting.
 - Prefer CSS custom properties over passing colors through props.
 - No inline styles unless absolutely necessary for dynamic values (e.g., needle rotation angle).
+- Formatting is owned by **Prettier** (`.prettierrc.json`: 100 cols, single quotes, semicolons, trailing commas) — don't hand-format; run `npm run format`. ESLint stylistic rules that would fight Prettier are disabled via `eslint-config-prettier`.

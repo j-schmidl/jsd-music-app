@@ -136,6 +136,8 @@ export function ChordGame() {
   }, [rootChoice]);
 
   useEffect(() => {
+    // Reset the round on dependency change — setState in an effect is the point.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     newRound();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rootChoice]);
@@ -144,6 +146,7 @@ export function ChordGame() {
   useEffect(() => {
     if (countdown === null) return;
     if (countdown <= 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       newRound();
       return;
     }
@@ -530,7 +533,12 @@ function NotesDirection({
       <p className="chord-game__or">oder am Klavier:</p>
       {/* The piano emits only sharp spellings; the chip picker above also
           offers flats. Either input works — chords match by pitch. */}
-      <Piano labels="white" activeNotes={placed} onClick={(note) => onToggle(note)} disabled={done} />
+      <Piano
+        labels="white"
+        activeNotes={placed}
+        onClick={(note) => onToggle(note)}
+        disabled={done}
+      />
     </>
   );
 }

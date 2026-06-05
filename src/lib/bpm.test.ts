@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  MAX_BPM,
-  MIN_BPM,
-  bpmFromTaps,
-  estimateBpmFromEnvelope,
-  foldTempo,
-} from './bpm';
+import { MAX_BPM, MIN_BPM, bpmFromTaps, estimateBpmFromEnvelope, foldTempo } from './bpm';
 
 describe('foldTempo', () => {
   it('leaves an in-range tempo unchanged', () => {

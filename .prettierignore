@@ -1,0 +1,11 @@
+dist
+node_modules
+coverage
+playwright-report
+test-results
+public/waves
+*.svg
+package-lock.json
+
+# Local scratch / debug scripts — formatted at the author's discretion.
+metro-repro.mjs

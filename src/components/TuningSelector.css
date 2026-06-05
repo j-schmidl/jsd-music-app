@@ -12,7 +12,10 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+  transition:
+    color 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -95,7 +98,6 @@
 .tuning-selector__item--active {
   color: var(--musik);
 }
-
 
 .tuning-selector__item-label {
   font-weight: 500;

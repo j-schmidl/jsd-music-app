@@ -29,12 +29,18 @@ export function WaveBackground() {
     <div className="wave-bg" aria-hidden="true">
       {markups[0] && (
         <div className="wave-bg__orbit wave-bg__orbit--top-right">
-          <div className="wave-bg__shape wave-bg__shape--a" dangerouslySetInnerHTML={{ __html: markups[0] }} />
+          <div
+            className="wave-bg__shape wave-bg__shape--a"
+            dangerouslySetInnerHTML={{ __html: markups[0] }}
+          />
         </div>
       )}
       {markups[1] && (
         <div className="wave-bg__orbit wave-bg__orbit--top-left">
-          <div className="wave-bg__shape wave-bg__shape--b" dangerouslySetInnerHTML={{ __html: markups[1] }} />
+          <div
+            className="wave-bg__shape wave-bg__shape--b"
+            dangerouslySetInnerHTML={{ __html: markups[1] }}
+          />
         </div>
       )}
     </div>

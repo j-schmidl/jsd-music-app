@@ -16,7 +16,9 @@ export function TuningSelector({ active, onChange, custom }: Props) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLUListElement | null>(null);
-  const [menuPos, setMenuPos] = useState<{ top: number; left: number; minWidth: number } | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number; minWidth: number } | null>(
+    null,
+  );
 
   // Outside click closes the menu.
   useEffect(() => {
@@ -67,19 +69,33 @@ export function TuningSelector({ active, onChange, custom }: Props) {
         data-testid="tuning-selector"
       >
         <span className="tuning-selector__label">{active.label}</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
 
-      {open && menuPos &&
+      {open &&
+        menuPos &&
         createPortal(
           <ul
             ref={menuRef}
             className="tuning-selector__menu"
             role="listbox"
             data-testid="tuning-selector-menu"
-            style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, minWidth: menuPos.minWidth }}
+            style={{
+              position: 'fixed',
+              top: menuPos.top,
+              left: menuPos.left,
+              minWidth: menuPos.minWidth,
+            }}
           >
             {options.map((t) => {
               const isActive = t.id === active.id;
@@ -94,7 +110,15 @@ export function TuningSelector({ active, onChange, custom }: Props) {
                     data-testid={`tuning-option-${t.id}`}
                   >
                     {isActive && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
                         <path d="M5 12l4 4L19 7" />
                       </svg>
                     )}

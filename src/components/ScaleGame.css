@@ -243,7 +243,10 @@
   justify-content: center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    color 120ms ease;
 }
 
 .scale-game__slot--given {
@@ -299,7 +302,9 @@
   font-weight: 700;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: border-color 120ms ease, background 120ms ease;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
 }
 
 .scale-game__pick:hover:not(:disabled) {
@@ -314,7 +319,9 @@
   display: flex;
   gap: 8px;
 }
-.scale-game__actions > * { flex: 1; }
+.scale-game__actions > * {
+  flex: 1;
+}
 
 /* ---- Feedback / score --------------------------------------------------- */
 .scale-game__feedback {
@@ -322,10 +329,18 @@
   font-size: 13px;
   color: var(--muted);
 }
-.scale-game__feedback--good { color: var(--tech); }
-.scale-game__feedback--bad { color: #ff5c6c; }
-.scale-game__feedback--warn { color: #f5b942; }
-.scale-game__feedback--info { color: var(--musik); }
+.scale-game__feedback--good {
+  color: var(--tech);
+}
+.scale-game__feedback--bad {
+  color: #ff5c6c;
+}
+.scale-game__feedback--warn {
+  color: #f5b942;
+}
+.scale-game__feedback--info {
+  color: var(--musik);
+}
 
 .scale-game__score {
   font-size: 12px;
@@ -403,12 +418,15 @@
 }
 
 @keyframes scale-game-drain {
-  from { stroke-dashoffset: 0; }
-  to   { stroke-dashoffset: 100; }
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 100;
+  }
 }
 
 .scale-game__next-label {
   position: relative;
   z-index: 1;
 }
-

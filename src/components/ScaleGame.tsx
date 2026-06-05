@@ -103,10 +103,7 @@ const NOTE_OPTIONS = (() => {
 
 export function ScaleGame({ config }: { config: ScaleGameConfig }) {
   const { id, keys, buildRound } = config;
-  const pickRandomKey = useCallback(
-    () => keys[Math.floor(Math.random() * keys.length)],
-    [keys],
-  );
+  const pickRandomKey = useCallback(() => keys[Math.floor(Math.random() * keys.length)], [keys]);
 
   const [mode, setMode] = useState<Mode>(() => pickRandomMode());
   const initialSettings = useMemo(
@@ -201,6 +198,8 @@ export function ScaleGame({ config }: { config: ScaleGameConfig }) {
   // Reset round whenever difficulty or key choice changes; mode is rerolled
   // each round and not user-controlled.
   useEffect(() => {
+    // Reset the round on dependency change — setState in an effect is the point.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     newRound();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [difficulty, keyChoice]);
@@ -551,9 +550,7 @@ export function ScaleGame({ config }: { config: ScaleGameConfig }) {
           const showAsWarn = warnMarkings.has(i) || (done && enharmonic) ? 'warn' : '';
           // Red: wrong pitch. Only true mistakes — never enharmonic ones.
           const showAsWrong =
-            wrongMarkings.has(i) || (done && v !== null && !exact && !enharmonic)
-              ? 'wrong'
-              : '';
+            wrongMarkings.has(i) || (done && v !== null && !exact && !enharmonic) ? 'wrong' : '';
           const isOctave = i === 7;
           return (
             <button
@@ -637,7 +634,11 @@ export function ScaleGame({ config }: { config: ScaleGameConfig }) {
       )}
 
       {countdown !== null && (
-        <NextScaleButton remaining={countdown} total={AUTO_ADVANCE_SECONDS} onClick={() => newRound()} />
+        <NextScaleButton
+          remaining={countdown}
+          total={AUTO_ADVANCE_SECONDS}
+          onClick={() => newRound()}
+        />
       )}
 
       <div
@@ -696,4 +697,3 @@ function NextScaleButton({ remaining, total, onClick }: NextScaleButtonProps) {
     </button>
   );
 }
-

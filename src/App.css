@@ -3,11 +3,11 @@
    ============================================================ */
 :root {
   --fund-01: #505078;
-  --fund-02: #1E0032;
-  --fund-light: #EBF0EB;
-  --tech: #8CEBCD;
-  --musik: #92A0F8;
-  --kultur: #DCFF3A;
+  --fund-02: #1e0032;
+  --fund-light: #ebf0eb;
+  --tech: #8cebcd;
+  --musik: #92a0f8;
+  --kultur: #dcff3a;
 
   --font-title: 'Space Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --font-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -60,7 +60,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 180ms ease, color 180ms ease;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
 button {
@@ -142,7 +144,9 @@ button {
   font-weight: 600;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background 120ms ease, color 120ms ease;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
 }
 
 .app__tuner-mode-btn--active {
@@ -218,7 +222,9 @@ button {
   gap: 4px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: border-color 120ms ease, background 120ms ease;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
 }
 
 .lernen-menu__tile:hover {
@@ -252,4 +258,6 @@ button {
   font-size: 13px;
   -webkit-tap-highlight-color: transparent;
 }
-.app__back:hover { color: var(--fg); }
+.app__back:hover {
+  color: var(--fg);
+}

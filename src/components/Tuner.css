@@ -97,7 +97,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  transition: transform 90ms linear, color 160ms ease;
+  transition:
+    transform 90ms linear,
+    color 160ms ease;
   color: var(--fg);
   z-index: 2;
 }
@@ -169,7 +171,9 @@
   padding: 12px 24px;
   min-height: 44px;
   cursor: pointer;
-  transition: filter 120ms ease, transform 120ms ease;
+  transition:
+    filter 120ms ease,
+    transform 120ms ease;
 }
 
 .tuner__start:hover {
@@ -267,7 +271,9 @@
   padding: 12px 24px;
   min-height: 44px;
   cursor: pointer;
-  transition: filter 120ms ease, transform 120ms ease;
+  transition:
+    filter 120ms ease,
+    transform 120ms ease;
 }
 
 .tuner__restart:hover {

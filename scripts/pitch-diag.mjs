@@ -53,7 +53,9 @@ const noteName = (f) => {
 
 const { samples, sampleRate } = readWavMono(path);
 console.log(`\nfile: ${path}`);
-console.log(`sampleRate: ${sampleRate} Hz · ${(samples.length / sampleRate).toFixed(2)}s · expected ${expected} Hz (${noteName(expected)})\n`);
+console.log(
+  `sampleRate: ${sampleRate} Hz · ${(samples.length / sampleRate).toFixed(2)}s · expected ${expected} Hz (${noteName(expected)})\n`,
+);
 
 for (const win of WINDOWS) {
   if (win > samples.length) continue;
@@ -83,7 +85,11 @@ for (const win of WINDOWS) {
     .map(([n, c]) => `${n}:${c}`)
     .join('  ');
   console.log(`window ${String(win).padStart(5)} (${winMs}ms, ${periods} periods of E2)`);
-  console.log(`  accepted ${accepted.length}/${frames} frames · median ${median.toFixed(1)} Hz (${noteName(median)})`);
-  console.log(`  on-pitch (±50¢ of E2): ${((100 * onPitch) / accepted.length).toFixed(1)}%  → outliers ${((100 * (accepted.length - onPitch)) / accepted.length).toFixed(1)}%`);
+  console.log(
+    `  accepted ${accepted.length}/${frames} frames · median ${median.toFixed(1)} Hz (${noteName(median)})`,
+  );
+  console.log(
+    `  on-pitch (±50¢ of E2): ${((100 * onPitch) / accepted.length).toFixed(1)}%  → outliers ${((100 * (accepted.length - onPitch)) / accepted.length).toFixed(1)}%`,
+  );
   console.log(`  notes: ${hist}\n`);
 }

@@ -81,7 +81,15 @@ export function MicButton({ status, devices, activeDeviceId, onSelect, onRetrigg
         onClick={handleMainClick}
         data-testid="mic-button-main"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <rect x="9" y="3" width="6" height="12" rx="3" />
           <path d="M5 11a7 7 0 0 0 14 0" />
           <line x1="12" y1="18" x2="12" y2="22" />
@@ -98,12 +106,21 @@ export function MicButton({ status, devices, activeDeviceId, onSelect, onRetrigg
         onClick={handlePickerToggle}
         data-testid="mic-picker-toggle"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
 
-      {open && menuPos &&
+      {open &&
+        menuPos &&
         createPortal(
           <ul
             ref={menuRef}
@@ -112,7 +129,9 @@ export function MicButton({ status, devices, activeDeviceId, onSelect, onRetrigg
             data-testid="mic-picker-menu"
             style={{ position: 'fixed', top: menuPos.top, right: menuPos.right }}
           >
-            {devices.length === 0 && <li className="mic-btn__menu-empty">Keine Mikrofone gefunden</li>}
+            {devices.length === 0 && (
+              <li className="mic-btn__menu-empty">Keine Mikrofone gefunden</li>
+            )}
             {devices.map((d) => {
               const isActive = d.deviceId === activeDeviceId;
               return (
@@ -126,7 +145,15 @@ export function MicButton({ status, devices, activeDeviceId, onSelect, onRetrigg
                     data-testid={`mic-option-${d.deviceId}`}
                   >
                     {isActive && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
                         <path d="M5 12l4 4L19 7" />
                       </svg>
                     )}

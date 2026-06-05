@@ -71,7 +71,9 @@ try {
     const path = resolve(OUT_DIR, target.name);
     await page.screenshot({ path, type: 'png', omitBackground: false });
     await ctx.close();
-    console.log(`wrote ${target.name} (${target.size}x${target.size}${target.maskable ? ' maskable' : ''})`);
+    console.log(
+      `wrote ${target.name} (${target.size}x${target.size}${target.maskable ? ' maskable' : ''})`,
+    );
   }
 } finally {
   await browser.close();

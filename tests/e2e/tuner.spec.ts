@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('jsd guitar tuner — page shell', () => {
-  test('renders the header, wordmark, AUTOM. switch, mic button, and all 6 string buttons', async ({ page }) => {
+  test('renders the header, wordmark, AUTOM. switch, mic button, and all 6 string buttons', async ({
+    page,
+  }) => {
     await page.goto('/');
 
     await expect(page).toHaveTitle(/jsd Guitar Tuner/i);
@@ -32,7 +34,9 @@ test.describe('jsd guitar tuner — page shell', () => {
 });
 
 test.describe('chromatic tuner mode', () => {
-  test('switching to Chromatisch hides the headstock, tuning selector and AUTOM. switch', async ({ page }) => {
+  test('switching to Chromatisch hides the headstock, tuning selector and AUTOM. switch', async ({
+    page,
+  }) => {
     await page.goto('/');
     // Guitar mode shows the string buttons and the AUTOM. switch.
     await expect(page.getByTestId('string-E2')).toBeVisible();
@@ -135,7 +139,9 @@ test.describe('tuner modes', () => {
     await expect(page.getByTestId('string-E2')).toBeDisabled();
   });
 
-  test('switching to manual mode activates the first string and allows selection', async ({ page }) => {
+  test('switching to manual mode activates the first string and allows selection', async ({
+    page,
+  }) => {
     await page.goto('/');
     // The <input> is visually hidden; click the <label> wrapper to toggle it.
     await page.getByTestId('auto-switch').click();
@@ -178,7 +184,9 @@ test.describe('tuning selector', () => {
     await expect(page.getByTestId('string-E4')).toHaveCount(0);
   });
 
-  test('selecting Drop D updates the trigger label and the bottom-left string label', async ({ page }) => {
+  test('selecting Drop D updates the trigger label and the bottom-left string label', async ({
+    page,
+  }) => {
     await page.goto('/');
     await page.getByTestId('tuning-selector').click();
     await page.getByTestId('tuning-option-drop-d').click();
@@ -189,7 +197,10 @@ test.describe('tuning selector', () => {
 });
 
 test.describe('tuner indicator', () => {
-  test('auto-starts the microphone on load and settles into listening or error', async ({ page, context }) => {
+  test('auto-starts the microphone on load and settles into listening or error', async ({
+    page,
+    context,
+  }) => {
     await context.grantPermissions(['microphone']);
     await page.goto('/');
 
