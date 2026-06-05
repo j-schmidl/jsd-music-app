@@ -1,7 +1,7 @@
 # Architecture — jsd-music-app
 
 High-level map of how the app is put together. For project intent, brand, and
-conventions see [CLAUDE.md](CLAUDE.md); this document describes **structure and
+conventions see [CLAUDE.md](../CLAUDE.md); this document describes **structure and
 data flow**. Keep it current — whenever you change the architecture (add a
 feature/tab/game, move logic between layers, change how audio is captured or
 how state is owned), update this file in the same change.
@@ -76,7 +76,7 @@ mic → usePitchDetection (pitchy / McLeod) → frequency
   `nearestNote` / cents math.
 - Two orthogonal mode switches, both must stay: **auto vs. manual** (auto-pick
   the target string vs. pin one) and **guitar vs. chromatic** (string-based
-  with a headstock vs. free 12-tone detection). See CLAUDE.md → "Tuner modes".
+  with a headstock vs. free 12-tone detection). See [CLAUDE.md](../CLAUDE.md) → "Tuner modes".
 - Components: `<Tuner>` (needle/readout, uses `<TunerRoll>`), `<Headstock>`
   (string buttons), `<TuningSelector>`, `<CustomTuningEditor>`, `<MicButton>`
   (status + device picker), `<AutoSwitch>`.
@@ -127,8 +127,8 @@ ChordGame
 
 - **Theme** — `lib/theme.ts` (tokens + storage key), `hooks/useTheme.ts`,
   `<ThemeToggle>`. Dark by default; the initial theme is applied by an inline
-  script in `index.html` before React mounts to avoid a flash. See CLAUDE.md →
-  "Theme".
+  script in `index.html` before React mounts to avoid a flash. See
+  [CLAUDE.md](../CLAUDE.md) → "Theme".
 - **Branding/background** — `<Wordmark>`, `<WaveBackground>` (inlines the
   Markensystem SVGs from `public/waves/`). All colors come from CSS custom
   properties in `src/App.css`, never hardcoded in components.
