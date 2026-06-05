@@ -1,13 +1,11 @@
 import { PitchDetector } from 'pitchy';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { rms, smoothPitch } from '../lib/pitch';
+import { useMicDevices, type MicDevice } from './useMicDevices';
 
 type Status = 'idle' | 'starting' | 'listening' | 'error';
 
-export type MicDevice = {
-  deviceId: string;
-  label: string;
-};
+export type { MicDevice };
 
 export type PitchState = {
   status: Status;
@@ -46,8 +44,7 @@ export function usePitchDetection(options: { minFreq?: number } = {}): PitchStat
   const [frequency, setFrequency] = useState<number | null>(null);
   const [clarity, setClarity] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [devices, setDevices] = useState<MicDevice[]>([]);
-  const [activeDeviceId, setActiveDeviceId] = useState<string | null>(null);
+  const { devices, activeDeviceId, setActiveDeviceId, refreshDevices } = useMicDevices();
   const [stalled, setStalled] = useState(false);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -77,24 +74,6 @@ export function usePitchDetection(options: { minFreq?: number } = {}): PitchStat
     if (stalledRef.current) {
       stalledRef.current = false;
       setStalled(false);
-    }
-  }, []);
-
-  const refreshDevices = useCallback(async () => {
-    if (!navigator.mediaDevices?.enumerateDevices) return;
-    try {
-      const list = await navigator.mediaDevices.enumerateDevices();
-      const mics = list
-        .filter((d) => d.kind === 'audioinput')
-        .map((d, i) => ({
-          deviceId: d.deviceId,
-          // Labels are empty until permission is granted — fall back to a stable
-          // numbered placeholder so the picker always has something to show.
-          label: d.label || `Mikrofon ${i + 1}`,
-        }));
-      setDevices(mics);
-    } catch {
-      // Ignore — the picker will just stay empty until permission unlocks labels.
     }
   }, []);
 
@@ -210,7 +189,7 @@ export function usePitchDetection(options: { minFreq?: number } = {}): PitchStat
         setError(err instanceof Error ? err.message : 'microphone unavailable');
       }
     },
-    [refreshDevices, clearStall],
+    [refreshDevices, clearStall, setActiveDeviceId],
   );
   useEffect(() => {
     startRef.current = start;
@@ -234,17 +213,6 @@ export function usePitchDetection(options: { minFreq?: number } = {}): PitchStat
       window.removeEventListener('focus', revive);
     };
   }, [clearStall]);
-
-  // Keep the device list in sync with OS-level changes (plug/unplug).
-  useEffect(() => {
-    const md = navigator.mediaDevices;
-    if (!md?.addEventListener) return;
-    const handler = () => {
-      void refreshDevices();
-    };
-    md.addEventListener('devicechange', handler);
-    return () => md.removeEventListener('devicechange', handler);
-  }, [refreshDevices]);
 
   useEffect(() => {
     return () => {

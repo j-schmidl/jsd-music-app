@@ -1,0 +1,183 @@
+.timeline {
+  --ruler-h: 26px;
+  --lane-h: 66px;
+
+  display: flex;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--fund-01) 35%, transparent);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* ── Left header column (not horizontally scrolled) ──────────────────── */
+.timeline__heads {
+  flex: 0 0 128px;
+  border-right: 1px solid color-mix(in srgb, var(--fund-01) 40%, transparent);
+}
+
+.timeline__heads-spacer {
+  height: var(--ruler-h);
+  background: var(--surface-2);
+}
+
+.timeline__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  height: var(--lane-h);
+  padding: 4px 6px;
+  border-top: 1px solid color-mix(in srgb, var(--fund-01) 25%, transparent);
+}
+
+.timeline__name {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 4px;
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: 5px;
+}
+
+.timeline__name:focus-visible {
+  border-color: var(--musik);
+  outline: none;
+}
+
+.timeline__head-btns {
+  display: flex;
+  gap: 3px;
+}
+
+.timeline__rec,
+.timeline__tg {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0;
+  color: var(--fg);
+  font-size: 0.74rem;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* R = record-enable: hollow red ring when armed, filled + pulsing while recording. */
+.timeline__rec {
+  color: #e0245e;
+  font-size: 0.7rem;
+}
+
+.timeline__rec--armed {
+  border-color: #e0245e;
+}
+
+.timeline__rec--on {
+  color: #fff;
+  background: #e0245e;
+  animation: clip-rec-pulse 1s ease-in-out infinite;
+}
+
+@keyframes clip-rec-pulse {
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, #e0245e 35%, transparent);
+  }
+}
+
+.timeline__tg--mute {
+  color: var(--fund-02);
+  background: var(--kultur);
+}
+
+.timeline__tg--solo {
+  color: var(--fund-02);
+  background: var(--tech);
+}
+
+.timeline__tg--del {
+  color: var(--muted);
+}
+
+/* ── Scrollable timeline ─────────────────────────────────────────────── */
+.timeline__scroll {
+  flex: 1;
+  min-width: 0;
+  overflow: auto hidden;
+
+  /* Brand-styled scrollbar (Firefox / standard). */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--musik) 55%, transparent) transparent;
+}
+
+/* Brand-styled scrollbar (WebKit / Chromium). */
+.timeline__scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.timeline__scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.timeline__scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--musik) 50%, transparent);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+.timeline__scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--musik) 75%, transparent);
+  background-clip: padding-box;
+}
+
+.timeline__content {
+  position: relative;
+}
+
+.timeline__ruler {
+  position: relative;
+  height: var(--ruler-h);
+  background: var(--surface-2);
+
+  /* light per-bar grid via repeating gradient */
+  cursor: pointer;
+}
+
+.timeline__bar-label {
+  position: absolute;
+  top: 4px;
+  padding-left: 3px;
+  color: var(--muted);
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  border-left: 1px solid color-mix(in srgb, var(--fg) 30%, transparent);
+}
+
+.timeline__lane {
+  position: relative;
+  height: var(--lane-h);
+  border-top: 1px solid color-mix(in srgb, var(--fund-01) 25%, transparent);
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--fund-01) 20%, transparent) 0 1px,
+    transparent 1px
+  );
+  background-size: 16px 100%;
+}
+
+.timeline__playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--kultur);
+  pointer-events: none;
+}

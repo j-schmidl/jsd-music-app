@@ -9,6 +9,7 @@ import { MajorScales } from './components/MajorScales';
 import { Metronome } from './components/Metronome';
 import { MicButton } from './components/MicButton';
 import { MinorScales } from './components/MinorScales';
+import { Recorder } from './components/Recorder';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Tuner } from './components/Tuner';
 import { TuningSelector } from './components/TuningSelector';
@@ -123,6 +124,7 @@ export default function App() {
 
   const isTuner = activeTab === 'stimmen';
   const isMetronom = activeTab === 'metronom';
+  const isAufnahme = activeTab === 'aufnahme';
   const isLernen = activeTab === 'lernen';
 
   return (
@@ -215,6 +217,7 @@ export default function App() {
           </>
         )}
         {isMetronom && <Metronome />}
+        {isAufnahme && <Recorder />}
         {isLernen && lernenScreen === 'menu' && <LernenMenu onOpen={setLernenScreen} />}
         {isLernen && lernenScreen !== 'menu' && (
           <>
