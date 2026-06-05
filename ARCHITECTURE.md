@@ -163,8 +163,13 @@ math (frequency, cents, onset, tempo) down in `lib/` so it stays testable.
   Covers shell, nav, theme, tuner mode switching, metronome, and the scale/chord
   games up to the start of `getUserMedia` (mic can't be exercised headless).
 - **Pre-commit hook** (`scripts/git-hooks/`, wired via `core.hooksPath` by the
-  `prepare` npm script) type-checks and runs the unit suite when a commit
-  touches the metronome feature. Bypass with `--no-verify`.
+  `prepare` npm script) runs Prettier, ESLint, and Stylelint on every commit
+  (plus a gitleaks secret scan when installed), and runs the unit suite when a
+  commit touches the metronome feature. Bypass with `--no-verify`.
+- **CI** (`.github/workflows/ci.yml`) is the non-bypassable mirror of the hook:
+  on every push/PR it runs format + lint + CSS-lint, the build/type-check, the
+  unit suite, and Playwright E2E, plus **gitleaks** (secrets) and **Trivy**
+  (deps/misconfig, report-only). The hook shortens the loop; CI is the gate.
 
 ## Build & deploy
 

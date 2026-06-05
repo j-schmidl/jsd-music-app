@@ -2,8 +2,7 @@
   position: relative;
   display: grid;
   grid-template-columns: 48px 1fr 48px;
-  align-items: center;
-  justify-items: center;
+  place-items: center center;
   gap: 12px;
   max-width: 300px;
   margin: 0 auto;
@@ -87,6 +86,7 @@
   100% {
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--musik) 20%, transparent);
   }
+
   50% {
     box-shadow: 0 0 0 10px color-mix(in srgb, var(--musik) 8%, transparent);
   }

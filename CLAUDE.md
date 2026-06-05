@@ -8,14 +8,16 @@ A high-level structural map lives in [ARCHITECTURE.md](ARCHITECTURE.md). **Whene
 
 `jsd-music-app` is a **music learning web app**. v1 is a **guitar tuner** as the landing page and first goodie — it's what a visitor sees when they open the site. The bottom navigation is **Stimmen** (tuner) / **Metronom** / **Lernen**, all implemented; the **Stimmen** tab stays first and is the landing page. The owner uses this app themselves and is also the primary developer.
 
-The **Metronom** tab is a click-track metronome plus a two-mode "BPM finden" tool: tap-tempo, and microphone tempo detection. Tempo logic is pure and lives in `src/lib/bpm.ts` (tap averaging, autocorrelation of an onset envelope, octave folding) and `src/lib/onset.ts` (FFT + spectral-flux onset envelope — the _same_ code the live mic detector runs is what the tests validate). Playback uses a Web Audio lookahead scheduler in `src/hooks/useMetronome.ts`; mic detection is in `src/hooks/useBpmDetector.ts`. The detector is validated offline against real audio: short mono WAV excerpts of the owner's own tracks/loops live in `tests/fixtures/audio/` (named `<bpm>bpm-<timbre>.wav`) and `src/lib/onset.test.ts` decodes them and asserts the detected tempo to within ±3 BPM. A **pre-commit hook** (`scripts/git-hooks/pre-commit`, wired via `core.hooksPath` — set automatically by the `prepare` npm script) runs a Prettier format-check (`npm run format:check`) and ESLint on **every** commit, and additionally runs the unit suite whenever a commit touches the metronome feature; bypass with `git commit --no-verify`.
+The **Metronom** tab is a click-track metronome plus a two-mode "BPM finden" tool: tap-tempo, and microphone tempo detection. Tempo logic is pure and lives in `src/lib/bpm.ts` (tap averaging, autocorrelation of an onset envelope, octave folding) and `src/lib/onset.ts` (FFT + spectral-flux onset envelope — the _same_ code the live mic detector runs is what the tests validate). Playback uses a Web Audio lookahead scheduler in `src/hooks/useMetronome.ts`; mic detection is in `src/hooks/useBpmDetector.ts`. The detector is validated offline against real audio: short mono WAV excerpts of the owner's own tracks/loops live in `tests/fixtures/audio/` (named `<bpm>bpm-<timbre>.wav`) and `src/lib/onset.test.ts` decodes them and asserts the detected tempo to within ±3 BPM. A **pre-commit hook** (`scripts/git-hooks/pre-commit`, wired via `core.hooksPath` — set automatically by the `prepare` npm script) runs a Prettier format-check (`npm run format:check`), ESLint, and Stylelint on **every** commit — plus a gitleaks secret scan when `gitleaks` is installed locally — and additionally runs the unit suite whenever a commit touches the metronome feature; bypass with `git commit --no-verify`. The same checks run in CI (see Stack → Tooling & CI), which is the non-bypassable gate; the hook is just the fast local mirror.
 
 ## Stack
 
 - **Vite + React + TypeScript** (template: `react-ts`).
 - **Pitch detection**: `pitchy` (McLeod Pitch Method) running in the browser via `AudioContext` + `getUserMedia`. No backend.
-- **Styling**: plain CSS files with CSS custom properties for theme tokens. No Tailwind, no styled-components.
+- **Styling**: plain CSS files with CSS custom properties for theme tokens. No Tailwind, no styled-components. Linted by **Stylelint** (`stylelint-config-standard`, config in `stylelint.config.js`; the selector rule allows BEM `block__element--modifier` naming).
 - **Fonts**: Google Fonts — `Space Mono` (titles) and `IBM Plex Sans` (body), loaded via `<link>` in `index.html`.
+- **TypeScript**: `strict` is on in all three project configs (`tsconfig.{app,node,test}.json`). The build (`tsc -b && vite build`) type-checks everything.
+- **Tooling & CI**: ESLint (flat config) + Stylelint + Prettier for code/style; **GitHub Actions** (`.github/workflows/ci.yml`) runs format/lint/CSS-lint, the build + type-check, unit tests, and Playwright E2E on every push and PR, plus **gitleaks** (secret scan) and **Trivy** (dependency/misconfig scan, currently report-only). CI is the durable gate; the pre-commit hook is its fast local mirror. Node version is pinned to 22 (`.nvmrc`, `engines`); `.npmrc` sets `legacy-peer-deps=true` (vite 8 vs `vite-plugin-pwa`'s peer range) so `npm ci` works everywhere, including Netlify. `.editorconfig` keeps editors aligned with Prettier.
 - **Tests**:
   - **Vitest** for unit tests, co-located as `src/**/*.test.ts`. The current suite covers the pure tuning logic in `src/lib/tuning.ts` — `nearestString`, `centsOff`, `isInTune`, `getTuningHint`, and the `STRINGS` table.
   - **Playwright** for E2E, living under `tests/e2e/`. Runs in Chromium with a `Pixel 7` mobile viewport (the project is mobile-first — tests run at mobile dimensions, not desktop). The suite covers: page shell rendering, bottom nav, theme default + toggle + persistence, auto/manual mode switching, and tuner start-button wiring. Mic input can't be exercised meaningfully in headless Chromium, so the E2E tests assert behavior up to the start of `getUserMedia` and leave actual pitch verification to manual testing.
@@ -70,6 +72,8 @@ npm test           # Vitest unit tests (watch mode)
 npm run test:run   # Vitest single run
 npm run test:e2e   # Playwright E2E tests (requires dev server already running, or uses webServer config)
 npm run lint       # ESLint over the repo
+npm run lint:css   # Stylelint over src/**/*.css
+npm run lint:css:fix  # Stylelint — auto-fix what it can
 npm run format     # Prettier — rewrite all files in place
 npm run format:check  # Prettier — verify formatting without writing (used by the pre-commit hook)
 ```
@@ -84,3 +88,4 @@ Mic access on iOS Safari requires HTTPS. For phone testing over the local networ
 - Prefer CSS custom properties over passing colors through props.
 - No inline styles unless absolutely necessary for dynamic values (e.g., needle rotation angle).
 - Formatting is owned by **Prettier** (`.prettierrc.json`: 100 cols, single quotes, semicolons, trailing commas) — don't hand-format; run `npm run format`. ESLint stylistic rules that would fight Prettier are disabled via `eslint-config-prettier`.
+- CSS is linted by **Stylelint** — run `npm run lint:css:fix` rather than hand-fixing. It enforces standard CSS hygiene and BEM-style class names but intentionally does **not** ban hardcoded hex (component CSS still has some); keep using brand tokens from `src/App.css` for anything themed.

@@ -302,6 +302,7 @@
   display: flex;
   gap: 8px;
 }
+
 .chord-game__actions > * {
   flex: 1;
 }
@@ -326,15 +327,19 @@
   font-size: 13px;
   color: var(--muted);
 }
+
 .chord-game__feedback--good {
   color: var(--tech);
 }
+
 .chord-game__feedback--bad {
   color: #ff5c6c;
 }
+
 .chord-game__feedback--warn {
   color: #f5b942;
 }
+
 .chord-game__feedback--info {
   color: var(--musik);
 }

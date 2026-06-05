@@ -15,6 +15,10 @@ npm run preview
 npm run test        # Vitest unit tests (watch)
 npm run test:run    # Vitest single run
 npm run test:e2e    # Playwright E2E tests
+
+npm run lint        # ESLint
+npm run lint:css    # Stylelint (CSS)
+npm run format      # Prettier — format in place
 ```
 
 ## Phone testing
@@ -34,3 +38,5 @@ Follows the jsd Markensystem (Musik cluster). Dark mode by default, light mode t
 ## Contributing
 
 The repo is public. External contributors go through **fork + pull request** — only the owner and invited collaborators can push directly. Open an issue or a PR; no sign-off required for small fixes.
+
+Quality is gated two ways: a fast **pre-commit hook** (Prettier, ESLint, Stylelint, gitleaks, and the metronome tests) and **GitHub Actions CI** (`.github/workflows/ci.yml`), which runs the full lint / build / test / E2E suite plus secret (gitleaks) and dependency (Trivy) scans on every push and pull request.

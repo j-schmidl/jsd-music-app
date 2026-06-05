@@ -60,10 +60,7 @@
    height) = 84px above the track's bottom. */
 .tuner__roll {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 84px;
+  inset: 0 0 84px;
   pointer-events: none;
 }
 
@@ -110,7 +107,7 @@
 .tuner__needle-line {
   width: 2px;
   height: 22px;
-  background: currentColor;
+  background: currentcolor;
   opacity: 0.9;
   margin-bottom: -2px;
 }
@@ -127,12 +124,12 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 2px solid currentColor;
+  border: 2px solid currentcolor;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--bg);
-  color: currentColor;
+  color: currentcolor;
   font-family: var(--font-title);
   font-weight: 700;
   margin-top: -4px;

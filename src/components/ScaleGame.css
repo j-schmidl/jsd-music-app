@@ -208,6 +208,7 @@
   font-size: 14px;
   color: var(--fg);
 }
+
 .scale-game__prompt b {
   color: var(--musik);
 }
@@ -272,12 +273,14 @@
   border-color: var(--tech);
   color: var(--tech);
 }
+
 /* Right pitch, wrong spelling — accepted but flagged amber so the user
    notices without it reading as a mistake. */
 .scale-game__slot.warn {
   border-color: #f5b942;
   color: #f5b942;
 }
+
 .scale-game__slot.wrong {
   border-color: #ff5c6c;
   color: #ff5c6c;
@@ -310,6 +313,7 @@
 .scale-game__pick:hover:not(:disabled) {
   border-color: var(--musik);
 }
+
 .scale-game__pick:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -319,6 +323,7 @@
   display: flex;
   gap: 8px;
 }
+
 .scale-game__actions > * {
   flex: 1;
 }
@@ -329,15 +334,19 @@
   font-size: 13px;
   color: var(--muted);
 }
+
 .scale-game__feedback--good {
   color: var(--tech);
 }
+
 .scale-game__feedback--bad {
   color: #ff5c6c;
 }
+
 .scale-game__feedback--warn {
   color: #f5b942;
 }
+
 .scale-game__feedback--info {
   color: var(--musik);
 }
@@ -421,6 +430,7 @@
   from {
     stroke-dashoffset: 0;
   }
+
   to {
     stroke-dashoffset: 100;
   }
