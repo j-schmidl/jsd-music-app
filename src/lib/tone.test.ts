@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { noteFrequency } from './tone';
+import { noteFrequency, octaveAbove } from './tone';
 
 describe('noteFrequency', () => {
   it('returns A4 = 440 Hz', () => {
@@ -30,5 +30,30 @@ describe('noteFrequency', () => {
     // Cb in octave 0 should equal the B in the octave below (which we model
     // as octave -1, but the simpler check is C0 / 2^(1/12) → ≈246.94 Hz).
     expect(noteFrequency('Cb', 0)).toBeCloseTo(noteFrequency('C', 0) / Math.pow(2, 1 / 12), 4);
+  });
+});
+
+describe('octaveAbove', () => {
+  it('keeps the root and higher-lettered tones in octave 0', () => {
+    // C major: C E G all sit at or above C's letter.
+    expect(octaveAbove('C', 'C')).toBe(0);
+    expect(octaveAbove('C', 'E')).toBe(0);
+    expect(octaveAbove('C', 'G')).toBe(0);
+  });
+
+  it('lifts tones below the root into octave 1', () => {
+    // A major (A C# E): C# and E are spelled below A, so they rise an octave
+    // to sound above the root rather than below it.
+    expect(octaveAbove('A', 'A')).toBe(0);
+    expect(octaveAbove('A', 'C#')).toBe(1);
+    expect(octaveAbove('A', 'E')).toBe(1);
+  });
+
+  it('arpeggiates a chord strictly upward from the root', () => {
+    const notes = ['A', 'C#', 'E', 'G#']; // A maj7
+    const freqs = notes.map((n) => noteFrequency(n, octaveAbove('A', n)));
+    for (let i = 1; i < freqs.length; i++) {
+      expect(freqs[i]).toBeGreaterThan(freqs[i - 1]);
+    }
   });
 });

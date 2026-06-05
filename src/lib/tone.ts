@@ -85,3 +85,12 @@ export function playFrequency(freq: number, durationMs = 550): void {
 export function playNote(note: string, octave: 0 | 1 = 0): void {
   playFrequency(noteFrequency(note, octave));
 }
+
+// Picks the octave (0 or 1) that places `note` at or above `root`. Chord tones
+// are spelled in absolute letters (A is "higher" than C within an octave), so
+// playing every tone in octave 0 would drop the upper tones of e.g. A major
+// below its root. Lifting the ones below the root into octave 1 makes the
+// chord arpeggiate upward from its root, as a root-position chord should.
+export function octaveAbove(root: string, note: string): 0 | 1 {
+  return semitoneOffset(note) >= semitoneOffset(root) ? 0 : 1;
+}

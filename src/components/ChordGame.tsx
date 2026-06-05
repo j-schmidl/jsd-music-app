@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CHORD_ROOTS,
-  CHORD_TYPES,
+  DIFFICULTIES,
   buildChord,
   chordName,
+  chordTypesFor,
   sameChordPitches,
   type ChordType,
+  type Difficulty,
 } from '../lib/chords';
 import { enharmonicEqual, noteSemi } from '../lib/scales';
 import { playNote } from '../lib/tone';
@@ -58,10 +60,10 @@ const CHORD_INFO: readonly { term: string; text: string }[] = [
 const STORAGE_KEY = 'jsd-chordgame-settings';
 const AUTO_ADVANCE_SECONDS = 5;
 
-type Settings = { rootChoice: 'random' | string };
+type Settings = { rootChoice: 'random' | string; difficulty: Difficulty };
 
 function loadSettings(): Settings {
-  const fallback: Settings = { rootChoice: 'random' };
+  const fallback: Settings = { rootChoice: 'random', difficulty: 'mittel' };
   if (typeof window === 'undefined') return fallback;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -73,7 +75,10 @@ function loadSettings(): Settings {
         (CHORD_ROOTS as readonly string[]).includes(parsed.rootChoice))
         ? (parsed.rootChoice as 'random' | string)
         : 'random';
-    return { rootChoice };
+    const difficulty = DIFFICULTIES.some((d) => d.id === parsed.difficulty)
+      ? (parsed.difficulty as Difficulty)
+      : fallback.difficulty;
+    return { rootChoice, difficulty };
   } catch {
     return fallback;
   }
@@ -90,24 +95,27 @@ function saveSettings(s: Settings) {
 
 type Round = { root: string; type: ChordType; notes: string[] };
 
-function buildRound(rootChoice: 'random' | string): Round {
+function buildRound(rootChoice: 'random' | string, difficulty: Difficulty): Round {
   const root = rootChoice === 'random' ? pickRandom(CHORD_ROOTS) : rootChoice;
-  const type = pickRandom(CHORD_TYPES);
+  const type = pickRandom(chordTypesFor(difficulty));
   return { root, type, notes: buildChord(root, type) };
 }
 
 export function ChordGame() {
   const initialSettings = useMemo(() => loadSettings(), []);
   const [rootChoice, setRootChoice] = useState<'random' | string>(initialSettings.rootChoice);
+  const [difficulty, setDifficulty] = useState<Difficulty>(initialSettings.difficulty);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
 
   useEffect(() => {
-    saveSettings({ rootChoice });
-  }, [rootChoice]);
+    saveSettings({ rootChoice, difficulty });
+  }, [rootChoice, difficulty]);
 
   const [direction, setDirection] = useState<Direction>(() => pickRandom(DIRECTIONS));
-  const [round, setRound] = useState<Round>(() => buildRound(initialSettings.rootChoice));
+  const [round, setRound] = useState<Round>(() =>
+    buildRound(initialSettings.rootChoice, initialSettings.difficulty),
+  );
   const [done, setDone] = useState(false);
   const [score, setScore] = useState({ correct: 0, attempts: 0 });
   const [feedback, setFeedback] = useState<{
@@ -127,20 +135,20 @@ export function ChordGame() {
   const newRound = useCallback(() => {
     setCountdown(null);
     setDirection(pickRandom(DIRECTIONS));
-    setRound(buildRound(rootChoice));
+    setRound(buildRound(rootChoice, difficulty));
     setDone(false);
     setFeedback(null);
     setGuessRoot('');
     setGuessType('');
     setPlaced([]);
-  }, [rootChoice]);
+  }, [rootChoice, difficulty]);
 
   useEffect(() => {
     // Reset the round on dependency change — setState in an effect is the point.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     newRound();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rootChoice]);
+  }, [rootChoice, difficulty]);
 
   // Auto-advance after a correct round.
   useEffect(() => {
@@ -155,6 +163,8 @@ export function ChordGame() {
   }, [countdown, newRound]);
 
   const correctName = chordName(round.root, round.type);
+  const availableTypes = useMemo(() => chordTypesFor(difficulty), [difficulty]);
+  const difficultyLabel = DIFFICULTIES.find((d) => d.id === difficulty)?.label ?? difficulty;
 
   // Plays the chord's notes as a quick arpeggio.
   const playChord = useCallback((notes: readonly string[]) => {
@@ -253,7 +263,9 @@ export function ChordGame() {
   return (
     <section className="chord-game" data-testid="chord-game">
       <h2 className="chord-game__title">Akkorde erkennen</h2>
-      <p className="chord-game__sub">Dur, Moll, vermindert, übermäßig, sus und Septakkorde.</p>
+      <p className="chord-game__sub" data-testid="chord-game-sub">
+        {availableTypes.map((t) => t.label).join(', ')}.
+      </p>
 
       <button
         type="button"
@@ -286,7 +298,7 @@ export function ChordGame() {
         >
           <span className="chord-game__settings-label">Einstellungen</span>
           <span className="chord-game__settings-summary" data-testid="settings-summary">
-            Grundton: {rootChoice === 'random' ? 'Zufall' : rootChoice}
+            {difficultyLabel} · Grundton: {rootChoice === 'random' ? 'Zufall' : rootChoice}
           </span>
           <span aria-hidden="true">{settingsOpen ? '▾' : '▸'}</span>
         </button>
@@ -302,6 +314,20 @@ export function ChordGame() {
 
       {settingsOpen && (
         <div className="chord-game__settings" data-testid="settings-panel">
+          <label className="chord-game__field">
+            <span>Schwierigkeit</span>
+            <select
+              data-testid="difficulty-select"
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value as Difficulty)}
+            >
+              {DIFFICULTIES.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.label} – {d.hint}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="chord-game__field">
             <span>Grundton</span>
             <select
@@ -323,6 +349,7 @@ export function ChordGame() {
       {direction === 'name' ? (
         <NameDirection
           notes={round.notes}
+          types={availableTypes}
           guessRoot={guessRoot}
           guessType={guessType}
           done={done}
@@ -392,6 +419,7 @@ export function ChordGame() {
 
 type NameDirectionProps = {
   notes: string[];
+  types: readonly ChordType[];
   guessRoot: string;
   guessType: string;
   done: boolean;
@@ -402,6 +430,7 @@ type NameDirectionProps = {
 
 function NameDirection({
   notes,
+  types,
   guessRoot,
   guessType,
   done,
@@ -450,7 +479,7 @@ function NameDirection({
         </label>
 
         <div className="chord-game__qualities" role="group" aria-label="Akkord-Art">
-          {CHORD_TYPES.map((type) => (
+          {types.map((type) => (
             <button
               key={type.id}
               type="button"

@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   CHORD_ROOTS,
   CHORD_TYPES,
+  DIFFICULTIES,
   buildChord,
   chordName,
   chordTypeById,
+  chordTypesFor,
   sameChordPitches,
 } from './chords';
 import { noteSemi } from './scales';
@@ -82,6 +84,36 @@ describe('chordName', () => {
     expect(chordName('A', chordTypeById('minor')!)).toBe('Am');
     expect(chordName('G', chordTypeById('dom7')!)).toBe('G7');
     expect(chordName('D#', chordTypeById('dim')!)).toBe('D#dim');
+  });
+});
+
+describe('chordTypesFor — difficulty tiers', () => {
+  const ids = (d: Parameters<typeof chordTypesFor>[0]) => chordTypesFor(d).map((t) => t.id);
+
+  it('leicht offers only Dur & Moll', () => {
+    expect(ids('leicht')).toEqual(['major', 'minor']);
+  });
+
+  it('mittel adds sus + sevenths but excludes verm./übermäßig', () => {
+    const m = ids('mittel');
+    expect(m).toContain('sus2');
+    expect(m).toContain('dom7');
+    expect(m).not.toContain('dim');
+    expect(m).not.toContain('aug');
+    expect(m).not.toContain('dim7');
+  });
+
+  it('schwer offers the full set', () => {
+    expect(ids('schwer')).toEqual(CHORD_TYPES.map((t) => t.id));
+  });
+
+  it('each tier is a non-empty subset returned in CHORD_TYPES order', () => {
+    for (const d of DIFFICULTIES) {
+      const types = chordTypesFor(d.id);
+      expect(types.length).toBeGreaterThan(0);
+      const order = types.map((t) => CHORD_TYPES.indexOf(t));
+      expect(order).toEqual([...order].sort((a, b) => a - b));
+    }
   });
 });
 
