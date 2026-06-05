@@ -326,10 +326,18 @@
   font-size: 13px;
   color: var(--muted);
 }
-.chord-game__feedback--good { color: var(--tech); }
-.chord-game__feedback--bad { color: #ff5c6c; }
-.chord-game__feedback--warn { color: #f5b942; }
-.chord-game__feedback--info { color: var(--musik); }
+.chord-game__feedback--good {
+  color: var(--tech);
+}
+.chord-game__feedback--bad {
+  color: #ff5c6c;
+}
+.chord-game__feedback--warn {
+  color: #f5b942;
+}
+.chord-game__feedback--info {
+  color: var(--musik);
+}
 
 .chord-game__score {
   font-size: 13px;

@@ -197,11 +197,12 @@ export function Metronome() {
             <button
               type="button"
               className={
-                'metronome__mic' +
-                (detector.status === 'listening' ? ' metronome__mic--on' : '')
+                'metronome__mic' + (detector.status === 'listening' ? ' metronome__mic--on' : '')
               }
               data-testid="finder-mic-button"
-              onClick={() => (detector.status === 'listening' ? detector.stop() : void detector.start())}
+              onClick={() =>
+                detector.status === 'listening' ? detector.stop() : void detector.start()
+              }
             >
               {detector.status === 'listening' ? 'Stoppen' : 'Zuhören'}
             </button>

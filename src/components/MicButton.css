@@ -18,7 +18,9 @@
   background: transparent;
   color: inherit;
   cursor: pointer;
-  transition: color 120ms ease, background-color 120ms ease;
+  transition:
+    color 120ms ease,
+    background-color 120ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 

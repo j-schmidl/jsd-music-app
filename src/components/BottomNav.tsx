@@ -42,7 +42,15 @@ export function BottomNav({ active, onChange }: Props) {
 
 function TunerIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <circle cx="12" cy="10" r="5" />
       <line x1="12" y1="15" x2="12" y2="22" />
       <line x1="8" y1="22" x2="16" y2="22" />
@@ -52,7 +60,15 @@ function TunerIcon() {
 
 function LearnIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M12 15c-4-2-6-2-9-2V5c3 0 5 0 9 2" />
       <path d="M12 15c4-2 6-2 9-2V5c-3 0-5 0-9 2" />
       <line x1="12" y1="7" x2="12" y2="22" />
@@ -63,7 +79,15 @@ function LearnIcon() {
 // A metronome: a tapering body with a swinging pendulum arm.
 function MetronomeIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M9 3h6l3 18H6L9 3z" />
       <line x1="7.5" y1="15" x2="16.5" y2="15" />
       <line x1="12" y1="15" x2="15" y2="5" />

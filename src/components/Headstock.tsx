@@ -40,11 +40,7 @@ export function Headstock({ tuning, mode, target, detected, onSelect }: Props) {
         ))}
       </div>
 
-      {isBass ? (
-        <BassHeadstockSvg stringCount={s.length} />
-      ) : (
-        <GuitarHeadstockSvg />
-      )}
+      {isBass ? <BassHeadstockSvg stringCount={s.length} /> : <GuitarHeadstockSvg />}
 
       {right.length > 0 && (
         <div className="headstock__column headstock__column--right">
@@ -102,15 +98,47 @@ function GuitarHeadstockSvg() {
       ))}
       {[80, 170, 260].map((y) => (
         <g key={`peg-left-${y}`}>
-          <line x1="30" y1={y} x2="60" y2={y} stroke="var(--fund-light)" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-          <circle cx="60" cy={y} r="9" fill="var(--fund-light)" stroke="var(--fund-01)" strokeWidth="1" />
+          <line
+            x1="30"
+            y1={y}
+            x2="60"
+            y2={y}
+            stroke="var(--fund-light)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            opacity="0.7"
+          />
+          <circle
+            cx="60"
+            cy={y}
+            r="9"
+            fill="var(--fund-light)"
+            stroke="var(--fund-01)"
+            strokeWidth="1"
+          />
           <circle cx="60" cy={y} r="3" fill="var(--fund-01)" opacity="0.35" />
         </g>
       ))}
       {[80, 170, 260].map((y) => (
         <g key={`peg-right-${y}`}>
-          <line x1="180" y1={y} x2="210" y2={y} stroke="var(--fund-light)" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-          <circle cx="180" cy={y} r="9" fill="var(--fund-light)" stroke="var(--fund-01)" strokeWidth="1" />
+          <line
+            x1="180"
+            y1={y}
+            x2="210"
+            y2={y}
+            stroke="var(--fund-light)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            opacity="0.7"
+          />
+          <circle
+            cx="180"
+            cy={y}
+            r="9"
+            fill="var(--fund-light)"
+            stroke="var(--fund-01)"
+            strokeWidth="1"
+          />
           <circle cx="180" cy={y} r="3" fill="var(--fund-01)" opacity="0.35" />
         </g>
       ))}
@@ -132,7 +160,9 @@ function BassHeadstockSvg({ stringCount }: { stringCount: number }) {
   const nutTop = 120;
   const nutBottom = 280;
   const nutY = (i: number) =>
-    stringCount === 1 ? (nutTop + nutBottom) / 2 : nutTop + (i * (nutBottom - nutTop)) / (stringCount - 1);
+    stringCount === 1
+      ? (nutTop + nutBottom) / 2
+      : nutTop + (i * (nutBottom - nutTop)) / (stringCount - 1);
   return (
     <svg className="headstock__svg" viewBox="0 0 240 400" aria-hidden="true">
       <defs>
@@ -175,8 +205,24 @@ function BassHeadstockSvg({ stringCount }: { stringCount: number }) {
       {/* All tuning pegs in-line on the left side */}
       {pegYs.map((y, i) => (
         <g key={`bass-peg-${i}`}>
-          <line x1="42" y1={y} x2="95" y2={y} stroke="var(--fund-light)" strokeWidth="2.4" strokeLinecap="round" opacity="0.75" />
-          <circle cx="42" cy={y} r="11" fill="var(--fund-light)" stroke="var(--fund-01)" strokeWidth="1" />
+          <line
+            x1="42"
+            y1={y}
+            x2="95"
+            y2={y}
+            stroke="var(--fund-light)"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            opacity="0.75"
+          />
+          <circle
+            cx="42"
+            cy={y}
+            r="11"
+            fill="var(--fund-light)"
+            stroke="var(--fund-01)"
+            strokeWidth="1"
+          />
           <circle cx="42" cy={y} r="4" fill="var(--fund-01)" opacity="0.35" />
         </g>
       ))}

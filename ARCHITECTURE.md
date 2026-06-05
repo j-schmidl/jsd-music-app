@@ -114,7 +114,9 @@ ChordGame
 ```
 
 - **`lib/scales.ts`** / **`lib/chords.ts`** — pure music theory (correct note
-  spelling, scale/chord construction, enharmonic comparison).
+  spelling, scale/chord construction, enharmonic comparison). `chords.ts` also
+  owns the chord game's difficulty tiers (`leicht`/`mittel`/`schwer` →
+  `chordTypesFor`), which limit the chord types a round can draw from.
 - **`lib/tone.ts`** — a tiny Web Audio synth that plays a "plink" per note;
   lazy-creates one `AudioContext` (iOS requires creation inside a gesture).
 - **`components/ScaleGame.tsx`** is a configurable game engine; `MajorScales`
@@ -140,12 +142,12 @@ All Web Audio / `getUserMedia` lifecycle lives in **hooks**, never in `lib/` or
 components. There are three independent audio entry points, each owning its own
 `AudioContext`:
 
-| Hook / module        | Captures mic? | Produces sound? | Purpose                  |
-| -------------------- | ------------- | --------------- | ------------------------ |
-| `usePitchDetection`  | yes           | no              | tuner pitch              |
-| `useBpmDetector`     | yes           | no              | mic tempo detection      |
-| `useMetronome`       | no            | yes             | click playback           |
-| `lib/tone`           | no            | yes             | game note playback       |
+| Hook / module       | Captures mic? | Produces sound? | Purpose             |
+| ------------------- | ------------- | --------------- | ------------------- |
+| `usePitchDetection` | yes           | no              | tuner pitch         |
+| `useBpmDetector`    | yes           | no              | mic tempo detection |
+| `useMetronome`      | no            | yes             | click playback      |
+| `lib/tone`          | no            | yes             | game note playback  |
 
 When touching audio, keep capture/scheduling logic in the hook and any pure
 math (frequency, cents, onset, tempo) down in `lib/` so it stays testable.

@@ -7,7 +7,22 @@ import './Piano.css';
 
 const WHITES = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'];
 // Whether a black key sits to the right of white index i (between i and i+1).
-const BLACK_AFTER = [true, true, false, true, true, true, false, true, true, false, true, true, true, false];
+const BLACK_AFTER = [
+  true,
+  true,
+  false,
+  true,
+  true,
+  true,
+  false,
+  true,
+  true,
+  false,
+  true,
+  true,
+  true,
+  false,
+];
 
 type PianoProps = {
   // 'white' = labels on white keys only, 'all' = also black keys, 'none'.
@@ -20,7 +35,13 @@ type PianoProps = {
   disabled?: boolean;
 };
 
-export function Piano({ labels, wrongKey = null, activeNotes = [], onClick, disabled = false }: PianoProps) {
+export function Piano({
+  labels,
+  wrongKey = null,
+  activeNotes = [],
+  onClick,
+  disabled = false,
+}: PianoProps) {
   const showWhiteLabel = labels !== 'none';
   const showBlackLabel = labels === 'all';
   const isActive = (note: string) => activeNotes.some((n) => noteSemi(n) === noteSemi(note));

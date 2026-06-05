@@ -16,8 +16,18 @@ export type Tuning = {
 // Frequencies follow the equal-tempered scale with A4 = 440 Hz.
 function noteFreq(name: NoteName, octave: number): number {
   const SEMITONES: Record<NoteName, number> = {
-    C: -9, 'C#': -8, D: -7, 'D#': -6, E: -5, F: -4,
-    'F#': -3, G: -2, 'G#': -1, A: 0, 'A#': 1, B: 2,
+    C: -9,
+    'C#': -8,
+    D: -7,
+    'D#': -6,
+    E: -5,
+    F: -4,
+    'F#': -3,
+    G: -2,
+    'G#': -1,
+    A: 0,
+    'A#': 1,
+    B: 2,
   };
   const n = SEMITONES[name] + (octave - 4) * 12;
   return Math.round(440 * Math.pow(2, n / 12) * 100) / 100;
@@ -33,7 +43,18 @@ export function makeString(name: NoteName, octave: number): GuitarString {
 }
 
 export const NOTE_NAMES: readonly NoteName[] = [
-  'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
+  'C',
+  'C#',
+  'D',
+  'D#',
+  'E',
+  'F',
+  'F#',
+  'G',
+  'G#',
+  'A',
+  'A#',
+  'B',
 ];
 
 // The id reserved for the user's own tuning.
@@ -62,9 +83,7 @@ export function loadCustomTuning(): Tuning {
     if (!raw) return fallback;
     const parsed = JSON.parse(raw) as { name: NoteName; octave: number }[];
     if (!Array.isArray(parsed) || parsed.length !== 6) return fallback;
-    const valid = parsed.every(
-      (p) => NOTE_NAMES.includes(p.name) && Number.isInteger(p.octave),
-    );
+    const valid = parsed.every((p) => NOTE_NAMES.includes(p.name) && Number.isInteger(p.octave));
     return valid ? makeCustomTuning(parsed) : fallback;
   } catch {
     return fallback;
@@ -151,7 +170,18 @@ export function nearestString(
 
 // Chromatic note names indexed by semitone within an octave (C = 0).
 const CHROMATIC: readonly NoteName[] = [
-  'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
+  'C',
+  'C#',
+  'D',
+  'D#',
+  'E',
+  'F',
+  'F#',
+  'G',
+  'G#',
+  'A',
+  'A#',
+  'B',
 ];
 
 // Maps any frequency to the closest equal-tempered note (full 12-tone scale,

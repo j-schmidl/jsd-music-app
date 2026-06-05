@@ -62,7 +62,10 @@ export function Tuner({
           </div>
           <div className="tuner__ticks">
             {[-50, -25, 0, 25, 50].map((v) => (
-              <span key={v} className={v === 0 ? 'tuner__tick tuner__tick--center' : 'tuner__tick'} />
+              <span
+                key={v}
+                className={v === 0 ? 'tuner__tick tuner__tick--center' : 'tuner__tick'}
+              />
             ))}
           </div>
           <div
@@ -77,10 +80,20 @@ export function Tuner({
             <div className="tuner__needle-dot">
               {state === 'in-tune' ? (
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M5 12l4 4L19 7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M5 12l4 4L19 7"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               ) : state === 'detected' ? (
-                <span className="tuner__cents">{cents > 0 ? '+' : ''}{Math.round(cents)}</span>
+                <span className="tuner__cents">
+                  {cents > 0 ? '+' : ''}
+                  {Math.round(cents)}
+                </span>
               ) : null}
             </div>
           </div>
@@ -101,7 +114,9 @@ export function Tuner({
               onClick={onRestart}
               data-testid="tuner-restart"
             >
-              <span className="tuner__restart-icon" aria-hidden="true">⟳</span>
+              <span className="tuner__restart-icon" aria-hidden="true">
+                ⟳
+              </span>
               Neu starten
             </button>
           </div>

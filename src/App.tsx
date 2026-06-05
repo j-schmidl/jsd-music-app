@@ -66,6 +66,9 @@ export default function App() {
   // string to pin.
   const target = isChromatic ? detected : mode === 'auto' ? detected : pinned;
 
+  // Deliberate derived-state sync: pinned is recomputed when mode/detection
+  // changes, which inherently means setState inside an effect.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     // When flipping auto → manual, seed pinned from the last detection so the UI stays anchored.
     if (mode === 'manual' && !pinned) {
@@ -82,6 +85,7 @@ export default function App() {
       setPinned(null);
     }
   }, [tuning, pinned]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Auto-start the microphone once on mount so the user does not have to tap
   // a "start" button first. If the browser blocks (permission denied, no mic),
@@ -211,9 +215,7 @@ export default function App() {
           </>
         )}
         {isMetronom && <Metronome />}
-        {isLernen && lernenScreen === 'menu' && (
-          <LernenMenu onOpen={setLernenScreen} />
-        )}
+        {isLernen && lernenScreen === 'menu' && <LernenMenu onOpen={setLernenScreen} />}
         {isLernen && lernenScreen !== 'menu' && (
           <>
             <button

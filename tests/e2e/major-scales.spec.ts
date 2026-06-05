@@ -57,7 +57,10 @@ async function currentMode(page: Page): Promise<'build' | 'fill' | 'piano'> {
 // actionability checks. The black piano keys overlay the whites in the
 // stacking context, which can confuse pointer-events resolution.
 const dispatchClick = (page: Page, selector: string) =>
-  page.locator(selector).first().evaluate((el) => (el as HTMLElement).click());
+  page
+    .locator(selector)
+    .first()
+    .evaluate((el) => (el as HTMLElement).click());
 
 test.describe('Lernen menu', () => {
   test('Lernen tab shows the game menu, then opens Major Scales', async ({ page }) => {
@@ -134,9 +137,10 @@ test.describe('Major Scales — Build mode', () => {
 
     // Record every frequency that gets played.
     await page.evaluate(() => {
-      const proto = (window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)
-        .prototype;
+      const proto = (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      ).prototype;
       const original = proto.createOscillator;
       (window as unknown as { __freqs: number[] }).__freqs = [];
       proto.createOscillator = function patched() {
@@ -164,8 +168,8 @@ test.describe('Major Scales — Build mode', () => {
     }
 
     // Frequency of slot 0 (G) when first placed.
-    const placedFreqs = await page.evaluate(
-      () => (window as unknown as { __freqs: number[] }).__freqs.slice(),
+    const placedFreqs = await page.evaluate(() =>
+      (window as unknown as { __freqs: number[] }).__freqs.slice(),
     );
     const firstG = placedFreqs[0];
 
@@ -176,8 +180,8 @@ test.describe('Major Scales — Build mode', () => {
     await page.getByTestId('slot-0').click(); // re-selecting plays the old value
     await page.getByTestId('pick-G').click(); // re-placing plays the new value
 
-    const correctionFreqs = await page.evaluate(
-      () => (window as unknown as { __freqs: number[] }).__freqs.slice(),
+    const correctionFreqs = await page.evaluate(() =>
+      (window as unknown as { __freqs: number[] }).__freqs.slice(),
     );
     // Every tone played during the correction must match slot 0's original
     // octave — no jump to the next octave.
@@ -190,7 +194,9 @@ test.describe('Major Scales — Build mode', () => {
     await expect(page.getByTestId('slot-6')).toContainText('F#');
   });
 
-  test('a stray picker tap with no slot selected does not overwrite a filled slot', async ({ page }) => {
+  test('a stray picker tap with no slot selected does not overwrite a filled slot', async ({
+    page,
+  }) => {
     await openMajorScales(page);
     await selectKey(page, 'G');
     // Fill the whole scale — afterwards no slot is "armed".
@@ -232,7 +238,9 @@ test.describe('Major Scales — Build mode', () => {
     await expect(page.getByTestId('score')).toContainText('1 / 1');
   });
 
-  test('enharmonic-but-misspelled answers get a yellow warning, not a red error', async ({ page }) => {
+  test('enharmonic-but-misspelled answers get a yellow warning, not a red error', async ({
+    page,
+  }) => {
     await openMajorScales(page);
     await selectKey(page, 'C#');
     // C# major canonical = C# D# E# F# G# A# B#. Place enharmonic but
@@ -353,7 +361,9 @@ test.describe('Major Scales — Piano mode', () => {
 });
 
 test.describe('Major Scales — settings panel', () => {
-  test('settings panel is collapsed by default and shows the current selection in the summary', async ({ page }) => {
+  test('settings panel is collapsed by default and shows the current selection in the summary', async ({
+    page,
+  }) => {
     await openMajorScales(page);
     await expect(page.getByTestId('settings-panel')).toHaveCount(0);
     // Default selection is Zufall + Schwer.
@@ -361,7 +371,9 @@ test.describe('Major Scales — settings panel', () => {
     await expect(page.getByTestId('settings-summary')).toContainText('Schwierigkeit: Schwer');
   });
 
-  test('toggling Einstellungen reveals the panel and reflects updates in the summary', async ({ page }) => {
+  test('toggling Einstellungen reveals the panel and reflects updates in the summary', async ({
+    page,
+  }) => {
     await openMajorScales(page);
     await page.getByTestId('settings-toggle').click();
     await expect(page.getByTestId('settings-panel')).toBeVisible();
@@ -410,7 +422,9 @@ test.describe('Major Scales — theory info panel', () => {
 });
 
 test.describe('Major Scales — auto-advance after piano win', () => {
-  test('shows the Nächste Tonleiter button with countdown and auto-fires a new round', async ({ page }) => {
+  test('shows the Nächste Tonleiter button with countdown and auto-fires a new round', async ({
+    page,
+  }) => {
     await pinRandom(page, 0.8); // piano mode
     await openMajorScales(page);
     await selectKey(page, 'C');
@@ -477,8 +491,10 @@ test.describe('Major Scales — audio on click', () => {
 
     // Wrap createOscillator on the AudioContext prototype to count calls.
     await page.evaluate(() => {
-      const proto = (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)
-        .prototype;
+      const proto = (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      ).prototype;
       const original = proto.createOscillator;
       (window as unknown as { __oscCount: number }).__oscCount = 0;
       proto.createOscillator = function patched() {
@@ -500,8 +516,10 @@ test.describe('Major Scales — audio on click', () => {
     await expect(page.getByTestId('piano')).toBeVisible();
 
     await page.evaluate(() => {
-      const proto = (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)
-        .prototype;
+      const proto = (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      ).prototype;
       const original = proto.createOscillator;
       (window as unknown as { __oscCount: number }).__oscCount = 0;
       proto.createOscillator = function patched() {
