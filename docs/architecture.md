@@ -1,7 +1,7 @@
 # Architecture — jsd-music-app
 
 High-level map of how the app is put together. For project intent, brand, and
-conventions see [CLAUDE.md](CLAUDE.md); this document describes **structure and
+conventions see [CLAUDE.md](../CLAUDE.md); this document describes **structure and
 data flow**. Keep it current — whenever you change the architecture (add a
 feature/tab/game, move logic between layers, change how audio is captured or
 how state is owned), update this file in the same change.
@@ -41,8 +41,8 @@ code be validated directly in unit tests.
 
 `App` is the single stateful root. It holds:
 
-- **Which tab is active** (`stimmen` / `metronom` / `lernen`) — switched by
-  `<BottomNav>`. `stimmen` (the tuner) is the landing tab.
+- **Which tab is active** (`stimmen` / `metronom` / `aufnahme` / `lernen`) —
+  switched by `<BottomNav>`. `stimmen` (the tuner) is the landing tab.
 - **Tuner state**: auto/manual mode, guitar/chromatic mode, the selected
   `Tuning`, the user's custom tuning, and the pinned string. It runs the
   `usePitchDetection` hook and derives the target string from the detected
@@ -50,9 +50,9 @@ code be validated directly in unit tests.
 - **Lernen sub-navigation**: a small in-component menu/screen state machine
   (`LernenScreen`) that swaps between the learning games.
 
-Each tab renders a feature subtree. The Metronom and Lernen features are
-self-contained — `App` just mounts `<Metronome>` or one of the game components
-and lets them own their own hooks and state.
+Each tab renders a feature subtree. The Metronom, Aufnahme and Lernen features
+are self-contained — `App` just mounts `<Metronome>` / `<Recorder>` or one of the
+game components and lets them own their own hooks and state.
 
 > Adding a Lernen game: add an entry to `LERNEN_GAMES` and a render branch in
 > `<main>` — no other plumbing needed (see the comment in `App.tsx`).
@@ -76,7 +76,7 @@ mic → usePitchDetection (pitchy / McLeod) → frequency
   `nearestNote` / cents math.
 - Two orthogonal mode switches, both must stay: **auto vs. manual** (auto-pick
   the target string vs. pin one) and **guitar vs. chromatic** (string-based
-  with a headstock vs. free 12-tone detection). See CLAUDE.md → "Tuner modes".
+  with a headstock vs. free 12-tone detection). See [CLAUDE.md](../CLAUDE.md) → "Tuner modes".
 - Components: `<Tuner>` (needle/readout, uses `<TunerRoll>`), `<Headstock>`
   (string buttons), `<TuningSelector>`, `<CustomTuningEditor>`, `<MicButton>`
   (status + device picker), `<AutoSwitch>`.
@@ -104,6 +104,48 @@ Mic BPM:   mic → useBpmDetector → lib/onset (FFT spectral-flux envelope)
   exact `estimateBpm` pipeline the tests validate.
 - Component: `<Metronome>`.
 
+### Aufnahme — multi-track loop recorder
+
+A deliberately simple, Logic-style overdub recorder (no editing/effects/MIDI —
+mic, gain, mute and shift only). Session-only/in-memory for v1; the data model is
+shaped so project save/open (behind login) can be added later as serialize-only.
+
+```
+Projekt → Spuren (Track[]) → Looprecordings (LoopRecording[], "übereinander")
+Playback:  per-track buffer (mixDown) → looping AudioBufferSourceNode → per-track GainNode
+           + a baked click track, all sharing one start time + loop region
+Record:    mic → ScriptProcessor (silent-gain routed) → captured frames
+           → anchored take (loop start − overhang) appended to the armed track
+Export:    mixDown / encodeWav → mix.wav, <Spur>.wav, or <Spur>-loopN.wav
+```
+
+- **`lib/recording.ts`** (pure) — the `LoopRecording`/`Track` model, bar/loop
+  timing, `fitTotalLength` (snap total length to whole loops), and `mixDown`
+  (sum every audible track's non-muted recordings at `startSample + shiftSamples`,
+  clipping overhang). **`lib/wav.ts`** — 16-bit PCM mono `encodeWav`.
+  **`lib/waveform.ts`** — `computePeaks` for the canvas.
+- **`hooks/useMultitrackRecorder.ts`** — owns the `AudioContext`, the mic stream,
+  transport and the whole project state. It is the **first hook that both
+  captures mic and produces sound**. Each track is pre-rendered into one looping
+  buffer behind a `GainNode`, so mute/solo is a live gain flip even mid-record;
+  the click is a second baked, looped buffer. Recordings keep a pre/post
+  **overhang** margin so a per-take **shift** (`shiftSamples`) can reach into the
+  neighbouring loops — the core "Versatz" feature (compensates Bluetooth latency,
+  nudges takes into the pocket).
+- UI is a **Logic-style horizontal timeline**. Recording is one-click per Spur and
+  lands **at the playhead**, running until you stop (no loop-snap/auto-stop);
+  `setPlayhead` moves the cursor (ruler click), `play`/`record` start from it.
+- Components: `<Recorder>` (transport + tempo + Einstellungen + Mix download),
+  `<Timeline>` (fixed left header column — name + **M/S/R** — beside a horizontally
+  scrollable bar-ruler + per-track lanes + a playhead spanning them), `<Clip>` (one
+  recording region: drag horizontally to move it in time — this replaced the old
+  "Versatz" slider — tap to select → mute/download/delete; position/width from
+  `(startSample+shiftSamples)`/length), `<Waveform>` (static canvas peaks), and
+  `<LiveWaveform>` — the live input oscilloscope ("Ausschlag") shown while the mic
+  is open/recording. It runs its own rAF off the hook's `readInputWave()` (an
+  `AnalyserNode` tap) so the parent never re-renders at frame rate, and mirrors the
+  current peak onto `data-level` for E2E assertions.
+
 ### Lernen — music-theory games
 
 ```
@@ -127,8 +169,8 @@ ChordGame
 
 - **Theme** — `lib/theme.ts` (tokens + storage key), `hooks/useTheme.ts`,
   `<ThemeToggle>`. Dark by default; the initial theme is applied by an inline
-  script in `index.html` before React mounts to avoid a flash. See CLAUDE.md →
-  "Theme".
+  script in `index.html` before React mounts to avoid a flash. See
+  [CLAUDE.md](../CLAUDE.md) → "Theme".
 - **Branding/background** — `<Wordmark>`, `<WaveBackground>` (inlines the
   Markensystem SVGs from `public/waves/`). All colors come from CSS custom
   properties in `src/App.css`, never hardcoded in components.
@@ -139,32 +181,46 @@ ChordGame
 ## Audio API ownership (the thing to get right)
 
 All Web Audio / `getUserMedia` lifecycle lives in **hooks**, never in `lib/` or
-components. There are three independent audio entry points, each owning its own
-`AudioContext`:
+components. Each audio entry point owns its own `AudioContext`:
 
-| Hook / module       | Captures mic? | Produces sound? | Purpose             |
-| ------------------- | ------------- | --------------- | ------------------- |
-| `usePitchDetection` | yes           | no              | tuner pitch         |
-| `useBpmDetector`    | yes           | no              | mic tempo detection |
-| `useMetronome`      | no            | yes             | click playback      |
-| `lib/tone`          | no            | yes             | game note playback  |
+| Hook / module           | Captures mic? | Produces sound? | Purpose             |
+| ----------------------- | ------------- | --------------- | ------------------- |
+| `usePitchDetection`     | yes           | no              | tuner pitch         |
+| `useBpmDetector`        | yes           | no              | mic tempo detection |
+| `useMetronome`          | no            | yes             | click playback      |
+| `useMultitrackRecorder` | yes           | yes             | loop recorder       |
+| `lib/tone`              | no            | yes             | game note playback  |
+
+`hooks/useMicDevices.ts` is a small **shared** helper (not an audio entry point):
+it owns `enumerateDevices` + the OS `devicechange` listener and feeds the
+`<MicButton>` picker for both `usePitchDetection` and `useMultitrackRecorder`.
 
 When touching audio, keep capture/scheduling logic in the hook and any pure
-math (frequency, cents, onset, tempo) down in `lib/` so it stays testable.
+math (frequency, cents, onset, tempo, mixing) down in `lib/` so it stays testable.
 
 ## Testing
 
 - **Vitest** (`src/**/*.test.ts`) — co-located unit tests for the pure `lib/`
-  layer: `tuning`, `scales`, `chords`, `tone`, `bpm`, `onset`. The onset/bpm
+  layer: `tuning`, `scales`, `chords`, `tone`, `bpm`, `onset`, `recording`,
+  `wav`, `waveform`. The onset/bpm
   tests decode **real WAV excerpts** in `tests/fixtures/audio/`
   (`<bpm>bpm-<timbre>.wav`) and assert detected tempo to within ±3 BPM — so the
   exact algorithm that runs live is the one under test.
 - **Playwright** (`tests/e2e/`) — `mobile-chromium` only, at a Pixel 7 viewport.
   Covers shell, nav, theme, tuner mode switching, metronome, and the scale/chord
-  games up to the start of `getUserMedia` (mic can't be exercised headless).
+  games. The tuner/metronome mic paths stop at `getUserMedia`, but the **recorder**
+  is exercised end-to-end: Chromium is launched with a **fake mic** fed a looping
+  sine (`tests/fixtures/fake-mic-sine.wav`, see `playwright.config.ts`), so
+  add-track → record → live waveform deflection → captured take are all asserted
+  headless.
 - **Pre-commit hook** (`scripts/git-hooks/`, wired via `core.hooksPath` by the
-  `prepare` npm script) type-checks and runs the unit suite when a commit
-  touches the metronome feature. Bypass with `--no-verify`.
+  `prepare` npm script) runs Prettier, ESLint, and Stylelint on every commit
+  (plus a gitleaks secret scan when installed), and runs the unit suite when a
+  commit touches the metronome feature. Bypass with `--no-verify`.
+- **CI** (`.github/workflows/ci.yml`) is the non-bypassable mirror of the hook:
+  on every push/PR it runs format + lint + CSS-lint, the build/type-check, the
+  unit suite, and Playwright E2E, plus **gitleaks** (secrets) and **Trivy**
+  (deps/misconfig, report-only). The hook shortens the loop; CI is the gate.
 
 ## Build & deploy
 

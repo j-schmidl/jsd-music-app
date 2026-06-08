@@ -1,0 +1,14 @@
+.live-waveform {
+  --wave-color: var(--tech);
+
+  padding: 0.3rem;
+  background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tech) 40%, transparent);
+  border-radius: 8px;
+}
+
+.live-waveform__canvas {
+  display: block;
+  width: 100%;
+  height: 56px;
+}

@@ -36,6 +36,7 @@
   color: #2a0a45;
   border-right: 1px solid #1a1a1a;
 }
+
 .piano__key--white:last-of-type {
   border-right: 0;
 }
@@ -54,6 +55,7 @@
   border-radius: 0 0 4px 4px;
   z-index: 2;
 }
+
 .piano__key--black:active:not(:disabled) {
   background: #3a3a3a;
 }
@@ -76,7 +78,7 @@
   color: var(--fund-02) !important;
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .piano {
     height: 180px;
   }

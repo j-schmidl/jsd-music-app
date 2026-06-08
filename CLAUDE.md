@@ -1,86 +1,47 @@
 # CLAUDE.md — jsd-music-app
 
-Durable context for future Claude sessions. Keep this short and stable; edit only when project-level intent changes, not per-task.
+Durable context for future Claude sessions. Keep this **short and stable** — edit
+only when project-level intent changes, not per-task. Detailed reference lives in
+[`docs/`](docs/); link to it rather than growing this file.
 
-A high-level structural map lives in [ARCHITECTURE.md](ARCHITECTURE.md). **Whenever you change the architecture** — add a feature/tab/game, move logic between the `lib/` / `hooks/` / `components/` layers, change how audio is captured or scheduled, or change how top-level state is owned — **update `ARCHITECTURE.md` in the same change** so it stays accurate.
+`jsd-music-app` is a **mobile-first, backend-free music-learning web app** (Vite +
+React + TypeScript; all audio runs in the browser, nothing is sent to a server).
+v1's landing page is a **guitar tuner**. Bottom nav: **Stimmen** (tuner) /
+**Metronom** / **Lernen** — all implemented; **Stimmen stays first and is the
+landing page**. The owner is the primary developer and uses the app themselves.
 
-## Project
+## Docs
 
-`jsd-music-app` is a **music learning web app**. v1 is a **guitar tuner** as the landing page and first goodie — it's what a visitor sees when they open the site. The bottom navigation is **Stimmen** (tuner) / **Metronom** / **Lernen**, all implemented; the **Stimmen** tab stays first and is the landing page. The owner uses this app themselves and is also the primary developer.
+- [docs/architecture.md](docs/architecture.md) — structure & data flow (the
+  `lib/` / `hooks/` / `components/` layering, audio capture/scheduling, state
+  ownership, the metronome/BPM internals). **Whenever you change the architecture**
+  — add a feature/tab/game, move logic between layers, change how audio is
+  captured or how top-level state is owned — **update it in the same change.**
+- [docs/development.md](docs/development.md) — stack, tooling & CI, tests, npm
+  scripts ("How to run"), and code conventions.
+- [docs/brand.md](docs/brand.md) — jsd Markensystem, color tokens, wave assets.
 
-The **Metronom** tab is a click-track metronome plus a two-mode "BPM finden" tool: tap-tempo, and microphone tempo detection. Tempo logic is pure and lives in `src/lib/bpm.ts` (tap averaging, autocorrelation of an onset envelope, octave folding) and `src/lib/onset.ts` (FFT + spectral-flux onset envelope — the _same_ code the live mic detector runs is what the tests validate). Playback uses a Web Audio lookahead scheduler in `src/hooks/useMetronome.ts`; mic detection is in `src/hooks/useBpmDetector.ts`. The detector is validated offline against real audio: short mono WAV excerpts of the owner's own tracks/loops live in `tests/fixtures/audio/` (named `<bpm>bpm-<timbre>.wav`) and `src/lib/onset.test.ts` decodes them and asserts the detected tempo to within ±3 BPM. A **pre-commit hook** (`scripts/git-hooks/pre-commit`, wired via `core.hooksPath` — set automatically by the `prepare` npm script) runs a Prettier format-check (`npm run format:check`) and ESLint on **every** commit, and additionally runs the unit suite whenever a commit touches the metronome feature; bypass with `git commit --no-verify`.
+## Guardrails (do not break)
 
-## Stack
-
-- **Vite + React + TypeScript** (template: `react-ts`).
-- **Pitch detection**: `pitchy` (McLeod Pitch Method) running in the browser via `AudioContext` + `getUserMedia`. No backend.
-- **Styling**: plain CSS files with CSS custom properties for theme tokens. No Tailwind, no styled-components.
-- **Fonts**: Google Fonts — `Space Mono` (titles) and `IBM Plex Sans` (body), loaded via `<link>` in `index.html`.
-- **Tests**:
-  - **Vitest** for unit tests, co-located as `src/**/*.test.ts`. The current suite covers the pure tuning logic in `src/lib/tuning.ts` — `nearestString`, `centsOff`, `isInTune`, `getTuningHint`, and the `STRINGS` table.
-  - **Playwright** for E2E, living under `tests/e2e/`. Runs in Chromium with a `Pixel 7` mobile viewport (the project is mobile-first — tests run at mobile dimensions, not desktop). The suite covers: page shell rendering, bottom nav, theme default + toggle + persistence, auto/manual mode switching, and tuner start-button wiring. Mic input can't be exercised meaningfully in headless Chromium, so the E2E tests assert behavior up to the start of `getUserMedia` and leave actual pitch verification to manual testing.
-  - Playwright uses the `mobile-chromium` project only. WebKit and Firefox browsers are intentionally not installed — if you add a cross-browser project, install with `npx playwright install webkit firefox` first.
-  - The Vite dev server is started automatically by Playwright via `webServer` in `playwright.config.ts`; a reused existing server is preferred when one is already running.
-
-## Brand
-
-Follows the **jsd Markensystem** style guide (PDF lives in `~/Downloads/260413_jannis_styleguide_final.pdf`). This app is in the **Musik** cluster (Welle zustand): deep purple Fundament 02 dark background, purple-blue Musik accent `#92A0F8` as the primary UI color. Brand tokens live in `src/App.css` as CSS custom properties — do not hardcode hex values in components.
-
-Key tokens (reference only — edit `src/App.css`, not here):
-
-- `--fund-01 #505078`, `--fund-02 #1E0032`, `--fund-light #EBF0EB`
-- `--tech #8CEBCD` (in-tune feedback), `--musik #92A0F8` (primary accent), `--kultur #DCFF3A`
-
-The wordmark is `jsd` — the last character `d` renders in `--musik` (echoing the `tuna` green in the GuitarTuna screenshots the design is modeled on).
-
-## Theme
-
-**The app starts in dark mode by default.** A light mode toggle (sun/moon icon) sits in the top-left corner. The user preference is persisted in `localStorage` under key `jsd-theme` and applied to `document.documentElement.dataset.theme` before React mounts (via a tiny inline script in `index.html`) to avoid a flash of wrong theme. Do not remove or invert the dark default.
-
-## Mobile-first
-
-The app is designed **phone-first** (iPhone-sized portrait, ≤430px). Desktop is a progressive enhancement via `@media (min-width: 768px)` — the phone-narrow column stays centered on larger screens. All hit targets are ≥44×44px. iOS safe areas are respected via `env(safe-area-inset-*)`. Do not refactor toward desktop-first layouts.
-
-## Tuner modes
-
-The "AUTOM." switch in the top-right flips between:
-
-- **Auto (default, ON)**: mic input → pitch detection → `nearestString(freq)` picks the target string. The matched string's button lights up; the needle shows cents offset from that target.
-- **Manual (OFF)**: user taps one of the six string buttons (D/A/E/G/B/E) to pin the target. The needle shows cents offset from the pinned string only. When the pinned string is also detected in the mic input, its ring pulses to indicate both "selected" and "detected".
-
-Both modes must stay. Do not merge them or drop one.
+- **Dark mode is the default.** A light-mode toggle (sun/moon) sits top-left; the
+  preference persists in `localStorage` under `jsd-theme` and is applied to
+  `document.documentElement.dataset.theme` by an inline script in `index.html`
+  before React mounts (avoids a flash). Do not remove or invert the dark default.
+- **Both tuner modes stay.** The top-right "AUTOM." switch flips between **Auto**
+  (default/ON: mic → pitch → `nearestString(freq)` picks the target string) and
+  **Manual** (OFF: user pins one of the six string buttons; the needle shows cents
+  vs. that string, and its ring pulses when the pinned string is also detected).
+  Do not merge or drop either.
+- **Mobile-first.** Designed phone-first (iPhone portrait, ≤430px); desktop is a
+  progressive enhancement via `@media (min-width: 768px)`. All hit targets
+  ≥44×44px; iOS safe areas respected via `env(safe-area-inset-*)`. Do not refactor
+  toward desktop-first layouts.
+- **Brand tokens, not hex.** Use the CSS custom properties in `src/App.css`; don't
+  hardcode hex in components. See [docs/brand.md](docs/brand.md).
 
 ## Repo policy
 
 - Public on GitHub under `j-schmidl/jsd-music-app`.
-- External contributors go through **fork + pull request**; only the owner and invited collaborators can push to the repo.
-- No direct pushes from non-collaborators — this is GitHub's default behavior for public repos and does not require extra config.
-
-## Wave assets
-
-The SVGs in `public/waves/` come from the Markensystem delivery (original location: `~/Downloads/wetransfer_key-visual-elemente_2026-04-16_1232/`). Their stroke is hardcoded to `#1e0032`; override it via CSS when inlining (`WaveBackground.tsx`). Keep them as-is — don't rewrite or optimize unless instructed.
-
-## How to run
-
-```bash
-npm run dev        # Vite dev server at http://localhost:5173
-npm run build      # Production build to dist/
-npm run preview    # Preview production build
-npm test           # Vitest unit tests (watch mode)
-npm run test:run   # Vitest single run
-npm run test:e2e   # Playwright E2E tests (requires dev server already running, or uses webServer config)
-npm run lint       # ESLint over the repo
-npm run format     # Prettier — rewrite all files in place
-npm run format:check  # Prettier — verify formatting without writing (used by the pre-commit hook)
-```
-
-Mic access on iOS Safari requires HTTPS. For phone testing over the local network, use `npm run dev -- --host` and access via the laptop's local IP (you'll need to accept a self-signed cert).
-
-## Conventions
-
-- One component per file under `src/components/<Name>.tsx` with co-located `<Name>.css`.
-- Custom hooks under `src/hooks/use<Name>.ts`. Pure logic under `src/lib/`.
-- Component files stay focused — if a component exceeds ~200 lines, consider splitting.
-- Prefer CSS custom properties over passing colors through props.
-- No inline styles unless absolutely necessary for dynamic values (e.g., needle rotation angle).
-- Formatting is owned by **Prettier** (`.prettierrc.json`: 100 cols, single quotes, semicolons, trailing commas) — don't hand-format; run `npm run format`. ESLint stylistic rules that would fight Prettier are disabled via `eslint-config-prettier`.
+- External contributors go through **fork + pull request**; only the owner and
+  invited collaborators can push. (GitHub's default for public repos — no extra
+  config needed.)

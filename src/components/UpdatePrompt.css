@@ -11,7 +11,7 @@
   border-radius: 999px;
   background: var(--fund-01);
   color: var(--fund-light);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
   font-size: 14px;
   max-width: calc(100vw - 24px);

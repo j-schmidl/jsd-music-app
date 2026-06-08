@@ -10,9 +10,10 @@
 #     validation (decodes the WAV fixtures and asserts the detected tempo), so a
 #     change can't land with the beat detection broken.
 #
-# This replaces a GitHub Actions workflow: pushing files under .github/workflows
-# needs a token with the `workflow` OAuth scope, which the local credential
-# doesn't have. A hook needs no special scope.
+# This is the fast local mirror of the GitHub Actions CI in
+# .github/workflows/ci.yml — it catches the same lint/format/secret issues
+# before they ever leave the machine. CI remains the durable gate (the hook is
+# bypassable); the hook just shortens the feedback loop.
 #
 # Bypass in a pinch with:  git commit --no-verify
 
@@ -36,6 +37,22 @@ echo "▶ linting (eslint)…"
 if ! npm run lint; then
   echo "✗ lint errors — fix them then restage. (Bypass: git commit --no-verify)"
   exit 1
+fi
+
+echo "▶ linting styles (stylelint)…"
+if ! npm run lint:css; then
+  echo "✗ CSS lint errors — run 'npm run lint:css:fix' then restage. (Bypass: git commit --no-verify)"
+  exit 1
+fi
+
+# Secret scan — only when gitleaks is installed locally, so a missing binary
+# never blocks a commit. CI always runs it (see .github/workflows/ci.yml).
+if command -v gitleaks >/dev/null 2>&1; then
+  echo "▶ scanning for secrets (gitleaks)…"
+  if ! gitleaks protect --staged --redact; then
+    echo "✗ potential secret detected — remove it then restage. (Bypass: git commit --no-verify)"
+    exit 1
+  fi
 fi
 
 # --- Layer 2: metronome unit suite, only when its files change ------------

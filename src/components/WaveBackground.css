@@ -68,6 +68,7 @@
   from {
     transform: rotate(-18deg);
   }
+
   to {
     transform: rotate(22deg);
   }
@@ -77,6 +78,7 @@
   from {
     transform: rotate(20deg);
   }
+
   to {
     transform: rotate(-20deg);
   }

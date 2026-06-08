@@ -9,7 +9,7 @@
   --musik: #92a0f8;
   --kultur: #dcff3a;
 
-  --font-title: 'Space Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font-title: 'Space Mono', ui-monospace, 'SFMono-Regular', menlo, monospace;
   --font-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
@@ -24,7 +24,7 @@
 [data-theme='light'] {
   --bg: var(--fund-light);
   --fg: var(--fund-02);
-  --surface: #ffffff;
+  --surface: #fff;
   --surface-2: #f2eef6;
   --muted: var(--fund-01);
 }
@@ -164,7 +164,7 @@ button {
   padding: 16px 0 max(16px, env(safe-area-inset-bottom));
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .app {
     max-width: 430px;
     border-left: 1px solid color-mix(in srgb, var(--fg) 8%, transparent);
@@ -258,6 +258,7 @@ button {
   font-size: 13px;
   -webkit-tap-highlight-color: transparent;
 }
+
 .app__back:hover {
   color: var(--fg);
 }

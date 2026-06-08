@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint, type-check, unit tests & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Prettier
+        run: npm run format:check
+      - name: ESLint
+        run: npm run lint
+      - name: Stylelint
+        run: npm run lint:css
+      # `build` is `tsc -b && vite build`, so this type-checks every tsconfig
+      # (app/node/test, now with `strict`) and verifies the production build.
+      - name: Type-check & build
+        run: npm run build
+      - name: Unit tests
+        run: npm run test:run
+
+  e2e:
+    name: Playwright E2E (mobile-chromium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Only the mobile-chromium project is used, so install just Chromium.
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      # Playwright's webServer config starts the Vite dev server itself.
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+  gitleaks:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Full history so gitleaks can scan all commits, not just the tip.
+          fetch-depth: 0
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  trivy:
+    name: Vulnerability scan (trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          # Report-only for now so pre-existing advisories don't block merges.
+          # Flip to '1' once the repo is clean to make this a hard gate.
+          exit-code: '0'

@@ -9,6 +9,7 @@ type Tab = {
 const TABS: Tab[] = [
   { id: 'stimmen', label: 'Stimmen', icon: <TunerIcon /> },
   { id: 'metronom', label: 'Metronom', icon: <MetronomeIcon /> },
+  { id: 'aufnahme', label: 'Aufnahme', icon: <RecordIcon /> },
   { id: 'lernen', label: 'Lernen', icon: <LearnIcon /> },
 ];
 
@@ -72,6 +73,24 @@ function LearnIcon() {
       <path d="M12 15c-4-2-6-2-9-2V5c3 0 5 0 9 2" />
       <path d="M12 15c4-2 6-2 9-2V5c-3 0-5 0-9 2" />
       <line x1="12" y1="7" x2="12" y2="22" />
+    </svg>
+  );
+}
+
+// Concentric circles around a dot — a record button / waveform glyph.
+function RecordIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none" />
     </svg>
   );
 }

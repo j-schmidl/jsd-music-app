@@ -1,0 +1,81 @@
+.clip {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  min-width: 18px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--musik) 22%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--musik) 60%, transparent);
+  border-radius: 6px;
+  cursor: grab;
+  touch-action: none; /* let pointer-drag move the clip, not scroll the lane */
+}
+
+.clip:active {
+  cursor: grabbing;
+}
+
+.clip--selected {
+  border-color: var(--kultur);
+  box-shadow: 0 0 0 1px var(--kultur);
+  z-index: 2;
+}
+
+.clip--muted {
+  opacity: 0.45;
+}
+
+.clip__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 18px;
+  padding: 0 4px;
+  background: color-mix(in srgb, var(--musik) 45%, transparent);
+}
+
+.clip__label {
+  overflow: hidden;
+  color: var(--fund-light);
+  font-family: var(--font-title);
+  font-size: 0.62rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.clip__tools {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+.clip__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 16px;
+  padding: 0;
+  color: var(--fund-light);
+  font-size: 0.62rem;
+  background: color-mix(in srgb, var(--fund-02) 45%, transparent);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.clip__btn--on {
+  color: var(--fund-02);
+  background: var(--kultur);
+}
+
+.clip .waveform {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  background: transparent;
+  border-radius: 0;
+  pointer-events: none;
+}
